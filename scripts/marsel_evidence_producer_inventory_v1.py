@@ -30,6 +30,16 @@ def is_direct_producer(source: str, evidence_name: str) -> bool:
     patterns = (
         rf"Path\(\s*['\"]{path_literal}['\"]\s*\)\s*\.\s*(?:write_text|write_bytes)\s*\(",
         rf"open\(\s*['\"]{path_literal}['\"]\s*,\s*['\"][wa]['\"]",
+    """Return true only for an explicit file-creation/write operation.
+
+    Filename mentions, tests, artifact upload declarations, and read operations
+    are not evidence producers. This conservative check may report unknown
+    dynamic writers as unverified; it must never promote them to verified.
+    """
+    escaped = re.escape(evidence_name)
+    patterns = (
+        rf"Path\(\s*['\"]{escaped}['\"]\s*\)\s*\.\s*(?:write_text|write_bytes)\s*\(",
+        rf"open\(\s*['\"]{escaped}['\"]\s*,\s*['\"][wa]['\"]",
     )
     return any(re.search(pattern, source) for pattern in patterns)
 
@@ -49,6 +59,8 @@ def main() -> int:
                 if "tests" in path.relative_to(ROOT).parts:
                     continue
                 text = path.read_text(encoding="utf-8", errors="ignore")
+                if path.parts[-2] == "tests":
+                    continue
                 if is_direct_producer(text, name):
                     producers.append(str(path.relative_to(ROOT)))
         rows.append({
