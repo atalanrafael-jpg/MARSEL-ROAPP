@@ -30,6 +30,21 @@ SEARCH_ROOTS = [ROOT / "scripts", ROOT / ".github", ROOT / "tests"]
 EXCLUDED = {"marsel_release_readiness_v1.py", "marsel_evidence_producer_inventory_v1.py"}
 
 
+def is_direct_producer(source: str, evidence_name: str) -> bool:
+    """Return true only for an explicit file-creation/write operation.
+
+    Filename mentions, tests, artifact upload declarations, and read operations
+    are not evidence producers. This conservative check may report unknown
+    dynamic writers as unverified; it must never promote them to verified.
+    """
+    escaped = re.escape(evidence_name)
+    patterns = (
+        rf"Path\(\s*['\"]{escaped}['\"]\s*\)\s*\.\s*(?:write_text|write_bytes)\s*\(",
+        rf"open\(\s*['\"]{escaped}['\"]\s*,\s*['\"][wa]['\"]",
+    )
+    return any(re.search(pattern, source) for pattern in patterns)
+
+
 def main() -> int:
     rows = []
     for name in REQUIRED:
@@ -43,7 +58,9 @@ def main() -> int:
                 if path.suffix not in {".py", ".yml", ".yaml", ".sh"}:
                     continue
                 text = path.read_text(encoding="utf-8", errors="ignore")
-                if name in text and "REQUIRED_EVIDENCE" not in text:
+                if path.parts[-2] == "tests":
+                    continue
+                if is_direct_producer(text, name):
                     producers.append(str(path.relative_to(ROOT)))
         rows.append({
             "evidence": name,
@@ -54,7 +71,7 @@ def main() -> int:
 
     payload = {
         "system": "MARSEL Evidence Producer Inventory",
-        "status": "PASS" if all(r["file_present"] or r["producer_count"] > 0 for r in rows) else "INCOMPLETE",
+        "status": "PASS" if all(r["file_present"] and r["producer_count"] > 0 for r in rows) else "INCOMPLETE",
         "observed_at": datetime.now(timezone.utc).isoformat(),
         "source": "github-actions:marsel-evidence-producer-inventory",
         "readonly": True,
@@ -65,7 +82,7 @@ def main() -> int:
     }
     out = ROOT / "marsel-evidence-producer-inventory.json"
     out.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
-    missing = [r["evidence"] for r in rows if not r["file_present"] and not r["producers"]]
+    missing = [r["evidence"] for r in rows if not r["file_present"] or not r["producers"]]
     print(f"REQUIRED_EVIDENCE_COUNT={len(rows)}")
     print(f"MISSING_PRODUCER_COUNT={len(missing)}")
     for item in missing:

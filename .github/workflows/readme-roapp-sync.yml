@@ -48,35 +48,6 @@ jobs:
         run: |
           python scripts/marsel_official_roapp_discovery_v1.py
 
-      - name: Download official OpenAPI JSON
-        shell: bash
-        run: |
-          set -euo pipefail
-          mkdir -p .artifacts
-          curl --fail --location --retry 3 --retry-all-errors \
-            --header 'User-Agent: MARSEL-ROApp-CI/1.0' \
-            --output .artifacts/roapp.openapi.json \
-            "$ROAPP_OPENAPI_JSON_URL"
-          python - <<'PY'
-          import json
-          from pathlib import Path
-          p = Path('.artifacts/roapp.openapi.json')
-          data = json.loads(p.read_text(encoding='utf-8'))
-          if not isinstance(data, dict) or not str(data.get('openapi', '')).strip():
-              raise SystemExit('Downloaded document is not a valid OpenAPI JSON document')
-          print(f"OpenAPI version: {data['openapi']}")
-          print(f"Title: {data.get('info', {}).get('title', '<missing>')}")
-          print(f"Paths: {len(data.get('paths', {}))}")
-          PY
-
-      - name: Validate OpenAPI with official ReadMe CLI
-        uses: readmeio/rdme@v10
-        with:
-          rdme: openapi validate .artifacts/roapp.openapi.json
-
-      - name: Upload validation evidence
-        run: python scripts/marsel_official_roapp_discovery_v1.py
-
       - name: Verify official ROAPP documentation index
         id: contract
         shell: bash
@@ -107,6 +78,34 @@ jobs:
           else:
               print("OPENAPI_SOURCE_AVAILABLE=True")
           PY
+
+      - name: Download official OpenAPI JSON
+        if: ${{ steps.contract.outputs.openapi_available == 'true' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .artifacts
+          curl --fail --location --retry 3 --retry-all-errors \
+            --header 'User-Agent: MARSEL-ROApp-CI/1.0' \
+            --output .artifacts/roapp.openapi.json \
+            "$ROAPP_OPENAPI_JSON_URL"
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path('.artifacts/roapp.openapi.json')
+          data = json.loads(p.read_text(encoding='utf-8'))
+          if not isinstance(data, dict) or not str(data.get('openapi', '')).strip():
+              raise SystemExit('Downloaded document is not a valid OpenAPI JSON document')
+          print(f"OpenAPI version: {data['openapi']}")
+          print(f"Title: {data.get('info', {}).get('title', '<missing>')}")
+          print(f"Paths: {len(data.get('paths', {}))}")
+          PY
+
+      - name: Validate OpenAPI with official ReadMe CLI
+        if: ${{ steps.contract.outputs.openapi_available == 'true' }}
+        uses: readmeio/rdme@v10
+        with:
+          rdme: openapi validate .artifacts/roapp.openapi.json
 
       - name: Upload discovery evidence
         if: always()
