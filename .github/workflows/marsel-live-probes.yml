@@ -21,9 +21,6 @@ jobs:
       - uses: actions/checkout@v4
       - name: Run read-only probes
         env:
-      - uses: actions/checkout@v6
-      - name: Run read-only probes
-        env:
           MARSEL_PR_SAFE: ${{ github.event_name == 'pull_request' && 'true' || 'false' }}
           ROAPP_HEALTH_URL: ${{ vars.ROAPP_HEALTH_URL }}
           SUPABASE_HEALTH_URL: ${{ vars.SUPABASE_HEALTH_URL }}
@@ -32,9 +29,8 @@ jobs:
           WIX_HEALTH_URL: ${{ vars.WIX_HEALTH_URL }}
         run: python scripts/marsel_live_probe_v1.py
       - name: Upload probe report
-        uses: actions/upload-artifact@v4
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v4
         with:
           name: marsel-live-probes
           path: artifacts/marsel-live-probes.json
