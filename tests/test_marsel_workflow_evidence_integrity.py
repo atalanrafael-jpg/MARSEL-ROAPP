@@ -52,3 +52,11 @@ def test_integration_health_workflow_has_one_job_steps_block():
     text = (ROOT / ".github" / "workflows" / "marsel-integration-health.yml").read_text(encoding="utf-8")
     assert len(re.findall(r"^    steps:", text, re.MULTILINE)) == 1
     assert text.count("- name: Run read-only integration health check") == 1
+
+def test_readme_sync_skips_download_when_official_openapi_is_unavailable():
+    text = (ROOT / ".github" / "workflows" / "readme-roapp-sync.yml").read_text(encoding="utf-8")
+    contract = text.index("id: contract")
+    download = text.index("- name: Download official OpenAPI JSON")
+    assert contract < download
+    assert "if: ${{ steps.contract.outputs.openapi_available == 'true' }}" in text[download:]
+    assert "Upload validation evidence" not in text
