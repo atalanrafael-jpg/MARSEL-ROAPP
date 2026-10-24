@@ -39,8 +39,8 @@ def is_direct_producer(source: str, evidence_name: str) -> bool:
     """
     escaped = re.escape(evidence_name)
     patterns = (
-        rf"Path\\(\\s*['\\\"]{escaped}['\\\"]\\s*\\)\\s*\\.\\s*(?:write_text|write_bytes)\\s*\\(",
-        rf"open\\(\\s*['\\\"]{escaped}['\\\"]\\s*,\\s*['\\\"][wa]['\\\"]",
+        rf"Path\(\s*['\"]{escaped}['\"]\s*\)\s*\.\s*(?:write_text|write_bytes)\s*\(",
+        rf"open\(\s*['\"]{escaped}['\"]\s*,\s*['\"][wa]['\"]",
     )
     return any(re.search(pattern, source) for pattern in patterns)
 
