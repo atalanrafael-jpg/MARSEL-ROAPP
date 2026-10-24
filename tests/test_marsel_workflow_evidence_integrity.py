@@ -46,7 +46,7 @@ def test_live_probes_workflow_has_no_incomplete_duplicate_steps():
     assert text.count("- uses: actions/checkout@") == 1
     assert text.count("- name: Run read-only probes") == 1
     assert text.count("uses: actions/upload-artifact@") == 1
-    assert text.count("- uses: actions/upload-artifact@") == 1
+    assert text.count("- name: Upload probe report") == 1
 
 
 def test_integration_health_workflow_has_one_job_steps_block():
