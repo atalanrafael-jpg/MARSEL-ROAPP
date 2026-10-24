@@ -130,6 +130,7 @@ jobs:
           }
           if src.exists():
               out['probe'] = json.loads(src.read_text(encoding='utf-8'))
+          Path('artifacts').mkdir(parents=True, exist_ok=True)
           Path('artifacts/marsel-executor-evidence.json').write_text(
               json.dumps(out, ensure_ascii=False, indent=2) + '\n', encoding='utf-8'
           )
