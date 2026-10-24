@@ -35,12 +35,6 @@ env:
 
 jobs:
   validate-roapp-contract:
-    name: Validate official ROAPP OpenAPI contract
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-
-jobs:
-  validate-roapp-contract:
     name: Validate official ROAPP documentation discovery
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -123,14 +117,11 @@ jobs:
             marsel-official-roapp-discovery-v1.json
             .artifacts/roapp.openapi.json
           if-no-files-found: warn
-          path: marsel-official-roapp-discovery-v1.json
-          if-no-files-found: error
           retention-days: 30
 
   sync-readme:
     name: Sync validated ROAPP OpenAPI to ReadMe
     needs: validate-roapp-contract
-    if: ${{ needs.validate-roapp-contract.result == 'success' && env.README_API_KEY != '' && env.README_API_DEFINITION_SLUG != '' }}
     if: ${{ needs.validate-roapp-contract.result == 'success' && needs.validate-roapp-contract.outputs.openapi_available == 'true' && github.event_name != 'pull_request' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
