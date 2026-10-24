@@ -24,7 +24,7 @@ jobs:
       - name: Publish evidence
         if: always()
         run: |
-          printf '%s\n' "system=MARSEL ROAPP" "repository=atalanrafael-jpg/MARSEL-Ro-app" "branch=main" "production_write=false" "run_id=${GITHUB_RUN_ID}" "commit=${GITHUB_SHA}" > marsel-system-sync-evidence.txt
+          printf '%s\n' "system=MARSEL ROAPP" "repository=atalanrafael-jpg/MARSEL-ROAPP" "branch=main" "production_write=false" "run_id=${GITHUB_RUN_ID}" "commit=${GITHUB_SHA}" > marsel-system-sync-evidence.txt
       - name: Upload evidence
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
