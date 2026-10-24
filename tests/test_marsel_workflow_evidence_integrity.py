@@ -33,3 +33,22 @@ def test_unified_evidence_is_written_once_and_keeps_gate_outcome():
     assert "'quality_gate_outcome': quality_gate_outcome" in block
     assert "quality_gate_outcome == 'success'" in block
     assert "status = 'INCOMPLETE' if missing else ('PASS' if quality_gate_outcome == 'success' and final == 'PASS' else 'REVIEW_REQUIRED')" in block
+
+
+def test_readme_sync_workflow_has_one_job_definition_and_artifact_path():
+    text = (ROOT / ".github" / "workflows" / "readme-roapp-sync.yml").read_text(encoding="utf-8")
+    assert len(re.findall(r"^jobs:", text, re.MULTILINE)) == 1
+    assert text.count("          path:") == 1
+
+
+def test_live_probes_workflow_has_no_incomplete_duplicate_steps():
+    text = (ROOT / ".github" / "workflows" / "marsel-live-probes.yml").read_text(encoding="utf-8")
+    assert text.count("- uses: actions/checkout@") == 1
+    assert text.count("- name: Run read-only probes") == 1
+    assert text.count("- uses: actions/upload-artifact@") == 1
+
+
+def test_integration_health_workflow_has_one_job_steps_block():
+    text = (ROOT / ".github" / "workflows" / "marsel-integration-health.yml").read_text(encoding="utf-8")
+    assert len(re.findall(r"^    steps:", text, re.MULTILINE)) == 1
+    assert text.count("- name: Run read-only integration health check") == 1
