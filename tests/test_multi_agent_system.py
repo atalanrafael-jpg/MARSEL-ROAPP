@@ -152,7 +152,7 @@ def test_risk_cannot_change_after_dispatch_starts():
     worker = threading.Thread(target=run_dispatch)
     worker.start()
     assert handler_started.wait(timeout=2)
-    with pytest.raises(AttributeError, match="immutable after dispatch starts"):
+    with pytest.raises(AttributeError, match="risk is immutable after initialization"):
         task.risk = Risk.CRITICAL
     release_handler.set()
     worker.join(timeout=3)

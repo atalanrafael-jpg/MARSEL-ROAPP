@@ -11,7 +11,7 @@ Establish a fresh canonical control point for MARSEL / ROAPP without changing RO
 
 - Business contour: MARSEL
 - Technology contour: ROAPP
-- Canonical repository: `atalanrafael-jpg/MARSEL-Ro-app`
+- Canonical repository: `atalanrafael-jpg/MARSEL-ROAPP`
 - Canonical branch: `main`
 - Current canonical branch: `main-MARSEL-ROAPP`
 - `main` does not currently exist and is not authoritative.

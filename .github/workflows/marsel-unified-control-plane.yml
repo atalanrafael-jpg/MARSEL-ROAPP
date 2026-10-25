@@ -121,7 +121,6 @@ jobs:
               ensure_ascii=False,
               indent=2,
           )
-          json.dump({'system':'MARSEL Unified Control Plane','status':'PR_SAFE_REVIEW','generated_at':datetime.now(timezone.utc).isoformat(),'readonly':True,'write_requests_made':0,'ro_app_data_mutated':False,'reason':'Live RO App audit is skipped for pull_request events to prevent secret exposure.'}, open('marsel-unified-evidence.json','w',encoding='utf-8'), ensure_ascii=False, indent=2)
           PY
       - name: Evaluate unified READ-ONLY safety and quality
         if: github.event_name != 'pull_request'
@@ -160,6 +159,7 @@ jobs:
         run: |
           python - <<'PY'
           import json
+          import os
           from datetime import datetime, timezone
           from pathlib import Path
 
@@ -180,7 +180,9 @@ jobs:
               'write_requests_made': 0,
               'ro_app_data_mutated': False,
               'missing_evidence': missing,
+              'quality_gate_outcome': os.environ.get('QUALITY_GATE_OUTCOME', 'unknown'),
           }
+          quality_gate_outcome = os.environ.get('QUALITY_GATE_OUTCOME', 'unknown')
 
           if not missing:
               inv, dq, ent, col, wh = [json.load(open(x, encoding='utf-8')) for x in files]
@@ -193,14 +195,16 @@ jobs:
               collision = 'PASS' if not col.get('error') and real_collisions == 0 and unresolved == 0 else 'REVIEW_REQUIRED'
               warehouse = 'PASS' if wh.get('result') == 'PASS' and bool(wh.get('confirmed_live_gets')) else 'REVIEW_REQUIRED'
               final = 'PASS' if all(x == 'PASS' for x in (quality, entity, collision, warehouse)) else 'REVIEW_REQUIRED'
+              status = 'INCOMPLETE' if missing else ('PASS' if quality_gate_outcome == 'success' and final == 'PASS' else 'REVIEW_REQUIRED')
               out = {
                   'system': 'MARSEL Unified Control Plane',
-                  'status': final,
+                  'status': status,
                   'observed_at': datetime.now(timezone.utc).isoformat(),
                   'source': 'github-actions:MARSEL Unified Control Plane',
                   'readonly': True,
                   'write_requests_made': 0,
                   'ro_app_data_mutated': False,
+                  'quality_gate_outcome': quality_gate_outcome,
                   'api_inventory': {'contract_state': inv.get('contract_state', {}), 'summary': inv.get('summary', {}), 'safety': inv.get('safety', {})},
                   'data_quality': {'result': quality, 'summary': dq.get('summary', {}), 'access_failures': dq.get('access_failures', []), 'hard_issues': dq.get('hard_issues', [])},
                   'entity_audit': {'result': entity, 'resolved_entities': ent.get('resolved_entities', []), 'blocked_entities': ent.get('blocked_entities', []), 'failed_entities': ent.get('failed_entities', [])},
@@ -209,15 +213,6 @@ jobs:
               }
 
           json.dump(out, open('marsel-unified-evidence.json', 'w', encoding='utf-8'), ensure_ascii=False, indent=2)
-          import json,os
-          from datetime import datetime,timezone
-          from pathlib import Path
-          files=['marsel-unified-api-inventory.json','marsel-unified-data-quality.json','marsel-unified-entity-audit.json','marsel-unified-product-collisions.json','marsel-unified-warehouse-contract.json']
-          missing=[x for x in files if not Path(x).exists()]
-          qgo=os.environ.get('QUALITY_GATE_OUTCOME','unknown')
-          status='PASS' if qgo=='success' and not missing else 'INCOMPLETE'
-          out={'system':'MARSEL Unified Control Plane','status':status,'generated_at':datetime.now(timezone.utc).isoformat(),'readonly':True,'write_requests_made':0,'ro_app_data_mutated':False,'quality_gate_outcome':qgo,'missing_evidence':missing}
-          json.dump(out,open('marsel-unified-evidence.json','w',encoding='utf-8'),ensure_ascii=False,indent=2)
           PY
       - name: Upload unified evidence
         if: always()

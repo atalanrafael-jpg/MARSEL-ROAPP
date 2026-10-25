@@ -6,7 +6,7 @@ import os
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-EXPECTED_REPOSITORY = "atalanrafael-jpg/MARSEL-Ro-app"
+EXPECTED_REPOSITORY = "atalanrafael-jpg/MARSEL-ROAPP"
 EXPECTED_BRANCH = "main"
 WORKFLOW = ROOT / ".github" / "workflows" / "marsel-unified-control-plane.yml"
 PRODUCTION_GATE = ROOT / ".github" / "workflows" / "marsel-production-gate.yml"
@@ -26,7 +26,6 @@ CANONICAL_SCRIPTS = {
     "scripts/marsel_data_quality_v22_readonly.py",
     "scripts/marsel_entity_audit_v20_35.py",
     "scripts/marsel_product_code_collision_audit_v22_3.py",
-    "scripts/marsel_warehouse_contract_v20_47.py",
     "scripts/marsel_warehouse_contract_v20_48.py",
 }
 FORBIDDEN_LIVE_WORKFLOW_NAMES = {
@@ -128,7 +127,7 @@ def main() -> int:
     if "marsel-unified-control-plane.yml" not in workflow_registry_text:
         fail("workflow registry does not name the canonical control plane")
     for marker in (
-        "Canonical repository: `atalanrafael-jpg/MARSEL-Ro-app`",
+        "Canonical repository: `atalanrafael-jpg/MARSEL-ROAPP`",
         "Canonical branch: `main`",
         "main is the only canonical integration branch",
         "PRODUCTION_WRITE = DISABLED",
@@ -137,9 +136,9 @@ def main() -> int:
             fail(f"canonical governance marker missing: {marker}")
     if "Canonical repository: `atalanrafael-jpg/Ro-app`" in bootstrap_text:
         fail("bootstrap still contains obsolete canonical repository")
-    if "Canonical repository: `atalanrafael-jpg/MARSEL-Ro-app`" not in bootstrap_text:
+    if "Canonical repository: `atalanrafael-jpg/MARSEL-ROAPP`" not in bootstrap_text:
         fail("bootstrap does not declare the canonical MARSEL ROAPP repository")
-    if runtime_ref_name == EXPECTED_BRANCH and "Canonical repository: `atalanrafael-jpg/MARSEL-Ro-app`" not in bootstrap_text:
+    if runtime_ref_name == EXPECTED_BRANCH and "Canonical repository: `atalanrafael-jpg/MARSEL-ROAPP`" not in bootstrap_text:
         fail("main branch is missing the canonical repository declaration")
     if "Production WRITE: `DISABLED`" not in settings_text:
         fail("settings baseline does not record production WRITE as disabled")

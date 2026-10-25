@@ -4,7 +4,7 @@
 
 ## Canonical source
 
-- Repository: `atalanrafael-jpg/MARSEL-Ro-app`
+- Repository: `atalanrafael-jpg/MARSEL-ROAPP`
 - Branch: `main`
 - Canonical control plane: `.github/workflows/marsel-unified-control-plane.yml`
 - Canonical governance: `00_PROJECT_CONTROL/GITHUB_GOVERNANCE.md`

@@ -9,7 +9,7 @@ MARSEL ROAPP is one system:
 
 - Business contour: **Ювелирная студия MARSEL**
 - Technology contour: **ROAPP**
-- Canonical repository: `atalanrafael-jpg/MARSEL-Ro-app`
+- Canonical repository: `atalanrafael-jpg/MARSEL-ROAPP`
 - Canonical branch: `main`
 - Canonical live audit control plane: `.github/workflows/marsel-unified-control-plane.yml`
 

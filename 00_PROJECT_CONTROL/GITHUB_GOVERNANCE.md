@@ -2,7 +2,7 @@
 
 ## 1. Canonical source of truth
 
-- Canonical repository: `atalanrafael-jpg/Ro-app`
+- Canonical repository: `atalanrafael-jpg/MARSEL-ROAPP`
 - Canonical branch: `main`
 - MARSEL and ROAPP are one system.
 - Other repositories are supporting, upstream, experimental, mirror, or infrastructure repositories and must not become a second MARSEL source of truth.

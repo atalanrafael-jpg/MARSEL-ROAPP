@@ -2,7 +2,7 @@
   "schema_version":"1.0",
   "system":"MARSEL ROAPP",
   "business_name":"Ювелирная студия MARSEL",
-  "canonical":{"repository":"atalanrafael-jpg/MARSEL-Ro-app","branch":"main","control_plane":".github/workflows/marsel-unified-control-plane.yml","architecture":"MARSEL_ROAPP_UNIFIED_SYSTEM.md","master_control":"docs/PROJECT_MASTER_CONTROL.md","ai_control_plane":"docs/MARSEL_AI_CONTROL_PLANE.md","mvp_contract":"01_MASTER/MARSEL_ROAPP_PRODUCTIZATION_MVP.md"},
+  "canonical":{"repository":"atalanrafael-jpg/MARSEL-ROAPP","branch":"main","control_plane":".github/workflows/marsel-unified-control-plane.yml","architecture":"MARSEL_ROAPP_UNIFIED_SYSTEM.md","master_control":"docs/PROJECT_MASTER_CONTROL.md","ai_control_plane":"docs/MARSEL_AI_CONTROL_PLANE.md","mvp_contract":"01_MASTER/MARSEL_ROAPP_PRODUCTIZATION_MVP.md"},
   "synchronization_policy":{"direction":"source_of_truth_to_dependents","production_write":false,"readonly_default":true,"unknown_state":"NOT_VERIFIED","prepared_is_not_verified":true,"found_is_not_connected":true,"verified_requires_current_evidence":true},
   "sources":[
     {"id":"github-main","type":"source_control","source_of_truth":true,"status":"VERIFIED","evidence":"current repository README and main branch metadata"},

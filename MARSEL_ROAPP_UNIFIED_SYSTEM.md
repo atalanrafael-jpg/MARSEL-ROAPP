@@ -7,7 +7,7 @@ MARSEL и ROAPP — единая система Ювелирной студии 
 - MARSEL — бизнес-контур: клиенты, заказы, изделия, ремонт, производство, склад, материалы, финансы, продажи и маркетинг.
 - ROAPP — технологический контур той же системы: API, данные, интеграции, автоматизация, MCP и CI/CD.
 - Каноническая система: **MARSEL ROAPP**.
-- Канонический GitHub repository: `atalanrafael-jpg/MARSEL-Ro-app`.
+- Канонический GitHub repository: `atalanrafael-jpg/MARSEL-ROAPP`.
 - Техническая каноническая ветка: `main`.
 - Ветка `main` является техническим источником истины для системы MARSEL ROAPP. `main-MARSEL-ROAPP` — историческая/legacy-ветка и не является канонической.
 - Канонический live audit control plane: `.github/workflows/marsel-unified-control-plane.yml`.

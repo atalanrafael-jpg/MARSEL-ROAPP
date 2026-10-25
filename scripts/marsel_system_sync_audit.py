@@ -17,7 +17,7 @@ def main():
     registry=json.loads(REGISTRY.read_text(encoding="utf-8"))
     canonical=registry["canonical"]
     failures=[]
-    if canonical["repository"]!="atalanrafael-jpg/MARSEL-Ro-app": failures.append("CANONICAL_REPOSITORY_MISMATCH")
+    if canonical["repository"]!="atalanrafael-jpg/MARSEL-ROAPP": failures.append("CANONICAL_REPOSITORY_MISMATCH")
     if canonical["branch"]!="main": failures.append("CANONICAL_BRANCH_MISMATCH")
     if registry["rules"]["no_secret_values"] is not True: failures.append("SECRET_POLICY_INVALID")
     if registry["rules"]["no_production_mutation"] is not True: failures.append("WRITE_POLICY_INVALID")
@@ -27,7 +27,7 @@ def main():
     unified=(ROOT/canonical["architecture"]).read_text(encoding="utf-8")
     master=(ROOT/canonical["master_control"]).read_text(encoding="utf-8")
     workflow=(ROOT/canonical["control_plane"]).read_text(encoding="utf-8")
-    for marker in ["MARSEL ROAPP","atalanrafael-jpg/MARSEL-Ro-app","main"]:
+    for marker in ["MARSEL ROAPP","atalanrafael-jpg/MARSEL-ROAPP","main"]:
         if marker not in unified: failures.append("ARCHITECTURE_MISSING_MARKER="+marker)
         if marker not in master: failures.append("MASTER_CONTROL_MISSING_MARKER="+marker)
     if "PRODUCTION_WRITE=DISABLED" not in workflow and "Production WRITE" not in workflow:

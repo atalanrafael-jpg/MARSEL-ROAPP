@@ -4,7 +4,7 @@ Status values: `CANONICAL`, `SUPPORTING`, `UPSTREAM`, `EXPERIMENTAL`, `SECURITY`
 
 | Repository | Status | Role | Rule |
 |---|---|---|---|
-| `Ro-app` | CANONICAL | MARSEL × ROAPP application, audits, integrations, CI/CD | Single source of truth |
+| `MARSEL-ROAPP` (`atalanrafael-jpg/MARSEL-ROAPP`) | CANONICAL | MARSEL × ROAPP application, audits, integrations, CI/CD | Single source of truth |
 | `ROAPP_API_KEY` | PRIVATE / SECURITY | Historical credential-handling repository | Never store live credentials; migrate to GitHub Secrets/secret manager |
 | `New-repository-secret` | SECURITY / REVIEW_REQUIRED | Credential exposure incident repository | Do not use for secrets; investigate history/metadata and rotate exposed credentials |
 | `codex` | UPSTREAM / REVIEW_REQUIRED | Codex source or mirror | Not a MARSEL dependency unless explicitly pinned/documented |
@@ -25,7 +25,7 @@ Status values: `CANONICAL`, `SUPPORTING`, `UPSTREAM`, `EXPERIMENTAL`, `SECURITY`
 
 ## Governance rule
 
-This registry is a control document, not proof that every listed repository is currently used. A repository becomes a production dependency only when code, workflow, deployment configuration, or documentation in `Ro-app` establishes that dependency.
+This registry is a control document, not proof that every listed repository is currently used. A repository becomes a production dependency only when code, workflow, deployment configuration, or documentation in `MARSEL-ROAPP` establishes that dependency.
 
 ## Required next classification
 
