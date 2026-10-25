@@ -61,3 +61,13 @@ def test_readme_sync_skips_download_when_official_openapi_is_unavailable():
     assert contract < download
     assert "if: ${{ steps.contract.outputs.openapi_available == 'true' }}" in text[download:]
     assert "Upload validation evidence" not in text
+
+
+def test_pr_safe_evidence_is_written_once_and_preserves_timestamp_and_source():
+    text = UNIFIED_WORKFLOW.read_text(encoding="utf-8")
+    start = text.index("- name: Build PR-safe incomplete evidence")
+    end = text.index("- name: Evaluate unified READ-ONLY safety and quality", start)
+    block = text[start:end]
+    assert block.count("json.dump(") == 1
+    assert "'observed_at': datetime.now(timezone.utc).isoformat()" in block
+    assert "'source': 'github-actions:MARSEL Unified Control Plane'" in block

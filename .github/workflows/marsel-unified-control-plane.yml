@@ -121,7 +121,6 @@ jobs:
               ensure_ascii=False,
               indent=2,
           )
-          json.dump({'system':'MARSEL Unified Control Plane','status':'PR_SAFE_REVIEW','generated_at':datetime.now(timezone.utc).isoformat(),'readonly':True,'write_requests_made':0,'ro_app_data_mutated':False,'reason':'Live RO App audit is skipped for pull_request events to prevent secret exposure.'}, open('marsel-unified-evidence.json','w',encoding='utf-8'), ensure_ascii=False, indent=2)
           PY
       - name: Evaluate unified READ-ONLY safety and quality
         if: github.event_name != 'pull_request'
