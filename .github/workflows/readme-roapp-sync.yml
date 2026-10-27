@@ -35,12 +35,6 @@ env:
 
 jobs:
   validate-roapp-contract:
-    name: Validate official ROAPP OpenAPI contract
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-
-jobs:
-  validate-roapp-contract:
     name: Validate official ROAPP documentation discovery
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -53,35 +47,6 @@ jobs:
       - name: Discover official ROAPP documentation endpoints
         run: |
           python scripts/marsel_official_roapp_discovery_v1.py
-
-      - name: Download official OpenAPI JSON
-        shell: bash
-        run: |
-          set -euo pipefail
-          mkdir -p .artifacts
-          curl --fail --location --retry 3 --retry-all-errors \
-            --header 'User-Agent: MARSEL-ROApp-CI/1.0' \
-            --output .artifacts/roapp.openapi.json \
-            "$ROAPP_OPENAPI_JSON_URL"
-          python - <<'PY'
-          import json
-          from pathlib import Path
-          p = Path('.artifacts/roapp.openapi.json')
-          data = json.loads(p.read_text(encoding='utf-8'))
-          if not isinstance(data, dict) or not str(data.get('openapi', '')).strip():
-              raise SystemExit('Downloaded document is not a valid OpenAPI JSON document')
-          print(f"OpenAPI version: {data['openapi']}")
-          print(f"Title: {data.get('info', {}).get('title', '<missing>')}")
-          print(f"Paths: {len(data.get('paths', {}))}")
-          PY
-
-      - name: Validate OpenAPI with official ReadMe CLI
-        uses: readmeio/rdme@v10
-        with:
-          rdme: openapi validate .artifacts/roapp.openapi.json
-
-      - name: Upload validation evidence
-        run: python scripts/marsel_official_roapp_discovery_v1.py
 
       - name: Verify official ROAPP documentation index
         id: contract
@@ -114,6 +79,34 @@ jobs:
               print("OPENAPI_SOURCE_AVAILABLE=True")
           PY
 
+      - name: Download official OpenAPI JSON
+        if: ${{ steps.contract.outputs.openapi_available == 'true' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .artifacts
+          curl --fail --location --retry 3 --retry-all-errors \
+            --header 'User-Agent: MARSEL-ROApp-CI/1.0' \
+            --output .artifacts/roapp.openapi.json \
+            "$ROAPP_OPENAPI_JSON_URL"
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path('.artifacts/roapp.openapi.json')
+          data = json.loads(p.read_text(encoding='utf-8'))
+          if not isinstance(data, dict) or not str(data.get('openapi', '')).strip():
+              raise SystemExit('Downloaded document is not a valid OpenAPI JSON document')
+          print(f"OpenAPI version: {data['openapi']}")
+          print(f"Title: {data.get('info', {}).get('title', '<missing>')}")
+          print(f"Paths: {len(data.get('paths', {}))}")
+          PY
+
+      - name: Validate OpenAPI with official ReadMe CLI
+        if: ${{ steps.contract.outputs.openapi_available == 'true' }}
+        uses: readmeio/rdme@v10
+        with:
+          rdme: openapi validate .artifacts/roapp.openapi.json
+
       - name: Upload discovery evidence
         if: always()
         uses: actions/upload-artifact@v7
@@ -123,14 +116,11 @@ jobs:
             marsel-official-roapp-discovery-v1.json
             .artifacts/roapp.openapi.json
           if-no-files-found: warn
-          path: marsel-official-roapp-discovery-v1.json
-          if-no-files-found: error
           retention-days: 30
 
   sync-readme:
     name: Sync validated ROAPP OpenAPI to ReadMe
     needs: validate-roapp-contract
-    if: ${{ needs.validate-roapp-contract.result == 'success' && env.README_API_KEY != '' && env.README_API_DEFINITION_SLUG != '' }}
     if: ${{ needs.validate-roapp-contract.result == 'success' && needs.validate-roapp-contract.outputs.openapi_available == 'true' && github.event_name != 'pull_request' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
