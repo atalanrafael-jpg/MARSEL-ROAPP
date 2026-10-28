@@ -3,6 +3,7 @@
 from scripts.marsel_evidence_producer_inventory_v1 import is_direct_producer
 
 
+def test_filename_mention_in_test_is_not_a_producer():
 def test_filename_mention_is_not_a_producer():
     source = 'assert "backup_evidence.json" in workflow_text'
     assert not is_direct_producer(source, "backup_evidence.json")
