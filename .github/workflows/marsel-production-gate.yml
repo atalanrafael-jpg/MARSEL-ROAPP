@@ -5,7 +5,7 @@ on:
     inputs:
       unified_control_plane_run_id:
         description: 'Successful Unified Control Plane run ID to use for evidence'
-        required: true
+        required: 
         type: string
   workflow_run:
     workflows: ["MARSEL Backup Evidence Producer"]
