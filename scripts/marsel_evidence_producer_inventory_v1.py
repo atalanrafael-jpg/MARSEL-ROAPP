@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Inventory production-evidence producers without manufacturing evidence.
+"""Inventory evidence files and explicit local producers without fabricating evidence.
 
-This controller is deliberately fail-closed: it reports which required evidence
-files have real local producers and which are missing. It never writes PASS
-claims or synthetic evidence documents.
+A filename mention is not proof that a producer exists, and a producer declaration
+is not proof that evidence was captured. Both the file and explicit local writer
+are required for PASS. Dynamic or external producers remain unverified.
 """
 from __future__ import annotations
 
@@ -15,17 +15,10 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 EVIDENCE_DIR = ROOT / "evidence"
 REQUIRED = [
-    "backup_evidence.json",
-    "restore_evidence.json",
-    "wix_roapp_reconciliation.json",
-    "marsel-unified-evidence.json",
-    "duplicate_reference_evidence.json",
-    "write_dry_run.json",
-    "idempotency_evidence.json",
-    "rollback_evidence.json",
+    "backup_evidence.json", "restore_evidence.json", "wix_roapp_reconciliation.json",
+    "marsel-unified-evidence.json", "duplicate_reference_evidence.json",
+    "write_dry_run.json", "idempotency_evidence.json", "rollback_evidence.json",
 ]
-# A producer must contain the evidence filename (or a clearly equivalent
-# output assignment) outside the release-readiness validator itself.
 SEARCH_ROOTS = [ROOT / "scripts", ROOT / ".github", ROOT / "tests"]
 EXCLUDED = {"marsel_release_readiness_v1.py", "marsel_evidence_producer_inventory_v1.py"}
 
@@ -41,6 +34,12 @@ def is_direct_producer(source: str, evidence_name: str) -> bool:
     patterns = (
         rf"Path\(\s*['\"]{escaped}['\"]\s*\)\s*\.\s*(?:write_text|write_bytes)\s*\(",
         rf"open\(\s*['\"]{escaped}['\"]\s*,\s*['\"][wa]['\"]",
+    """Recognize explicit writes; reject filename mentions and artifact paths."""
+    escaped = re.escape(evidence_name)
+    literal_path = rf"(?:[A-Za-z0-9_./-]*?/)?{escaped}"
+    patterns = (
+        rf"Path\(\s*['\"]{literal_path}['\"]\s*\)\s*\.\s*(?:write_text|write_bytes)\s*\(",
+        rf"open\(\s*['\"]{literal_path}['\"]\s*,\s*['\"][wa]['\"]",
     )
     return any(re.search(pattern, source) for pattern in patterns)
 
@@ -61,6 +60,10 @@ def main() -> int:
                 if path.parts[-2] == "tests":
                     continue
                 if is_direct_producer(text, name):
+                if "tests" in path.relative_to(ROOT).parts:
+                    continue
+                source = path.read_text(encoding="utf-8", errors="ignore")
+                if is_direct_producer(source, name):
                     producers.append(str(path.relative_to(ROOT)))
         rows.append({
             "evidence": name,
