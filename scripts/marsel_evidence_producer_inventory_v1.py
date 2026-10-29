@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Inventory evidence files and explicit local producers without fabricating evidence.
+"""Inventory required evidence files and explicit local producers.
 
-A filename mention is not proof that a producer exists, and a producer declaration
-is not proof that evidence was captured. Both the file and explicit local writer
-are required for PASS. Dynamic or external producers remain unverified.
+A filename mention, test assertion, or artifact upload declaration is not proof
+that evidence is produced. This check is conservative and never fabricates
+evidence. External/dynamic producers remain unverified until directly observed.
 """
 from __future__ import annotations
 
@@ -15,26 +15,24 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 EVIDENCE_DIR = ROOT / "evidence"
 REQUIRED = [
-    "backup_evidence.json", "restore_evidence.json", "wix_roapp_reconciliation.json",
-    "marsel-unified-evidence.json", "duplicate_reference_evidence.json",
-    "write_dry_run.json", "idempotency_evidence.json", "rollback_evidence.json",
+    "backup_evidence.json",
+    "restore_evidence.json",
+    "wix_roapp_reconciliation.json",
+    "marsel-unified-evidence.json",
+    "duplicate_reference_evidence.json",
+    "write_dry_run.json",
+    "idempotency_evidence.json",
+    "rollback_evidence.json",
 ]
 SEARCH_ROOTS = [ROOT / "scripts", ROOT / ".github", ROOT / "tests"]
-EXCLUDED = {"marsel_release_readiness_v1.py", "marsel_evidence_producer_inventory_v1.py"}
+EXCLUDED = {
+    "marsel_release_readiness_v1.py",
+    "marsel_evidence_producer_inventory_v1.py",
+}
 
 
 def is_direct_producer(source: str, evidence_name: str) -> bool:
-    """Return true only for an explicit file-creation/write operation.
-
-    Filename mentions, tests, artifact upload declarations, and read operations
-    are not evidence producers. This conservative check may report unknown
-    dynamic writers as unverified; it must never promote them to verified.
-    """
-    escaped = re.escape(evidence_name)
-    patterns = (
-        rf"Path\(\s*['\"]{escaped}['\"]\s*\)\s*\.\s*(?:write_text|write_bytes)\s*\(",
-        rf"open\(\s*['\"]{escaped}['\"]\s*,\s*['\"][wa]['\"]",
-    """Recognize explicit writes; reject filename mentions and artifact paths."""
+    """Recognize literal file writes, not mere mentions or artifact paths."""
     escaped = re.escape(evidence_name)
     literal_path = rf"(?:[A-Za-z0-9_./-]*?/)?{escaped}"
     patterns = (
@@ -56,10 +54,6 @@ def main() -> int:
                     continue
                 if path.suffix not in {".py", ".yml", ".yaml", ".sh"}:
                     continue
-                text = path.read_text(encoding="utf-8", errors="ignore")
-                if path.parts[-2] == "tests":
-                    continue
-                if is_direct_producer(text, name):
                 if "tests" in path.relative_to(ROOT).parts:
                     continue
                 source = path.read_text(encoding="utf-8", errors="ignore")
@@ -72,9 +66,13 @@ def main() -> int:
             "producer_count": len(set(producers)),
         })
 
+    missing = [
+        row["evidence"] for row in rows
+        if not row["file_present"] or not row["producers"]
+    ]
     payload = {
         "system": "MARSEL Evidence Producer Inventory",
-        "status": "PASS" if all(r["file_present"] and r["producer_count"] > 0 for r in rows) else "INCOMPLETE",
+        "status": "PASS" if not missing else "INCOMPLETE",
         "observed_at": datetime.now(timezone.utc).isoformat(),
         "source": "github-actions:marsel-evidence-producer-inventory",
         "readonly": True,
@@ -85,14 +83,12 @@ def main() -> int:
     }
     out = ROOT / "marsel-evidence-producer-inventory.json"
     out.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
-    missing = [r["evidence"] for r in rows if not r["file_present"] or not r["producers"]]
+
     print(f"REQUIRED_EVIDENCE_COUNT={len(rows)}")
     print(f"MISSING_PRODUCER_COUNT={len(missing)}")
     for item in missing:
         print(f"MISSING_PRODUCER={item}")
-    if missing:
-        raise SystemExit(2)
-    return 0
+    return 2 if missing else 0
 
 
 if __name__ == "__main__":
