@@ -12,7 +12,7 @@ permissions:
 
 concurrency:
   group: marsel-evidence-producer-inventory-${{ github.ref }}
-  cancel-in-progress:
+  cancel-in-progress: true
 jobs:
   inventory:
     runs-on: ubuntu-latest
