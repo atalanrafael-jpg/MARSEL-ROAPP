@@ -26,7 +26,7 @@ Deleting a file from `main` does NOT revoke a credential and does NOT remove it 
 
 ## Canonical project
 
-The canonical repository is `atalanrafael-jpg/MARSEL-Ro-app` and the canonical branch is `main`. Other repositories may provide infrastructure, experiments, upstream sources, or integrations, but they must not silently become a second MARSEL source of truth.
+The canonical repository is `atalanrafael-jpg/MARSEL ROAPP and the canonical branch is `main`. Other repositories may provide infrastructure, experiments, upstream sources, or integrations, but they must not silently become a second MARSEL source of truth.
 
 ## Verification
 
