@@ -6,10 +6,10 @@
 
 - Repository: atalanrafael-jpg/MARSEL ROAPP
 - Branch: main
-- Canonical control plane: .github/workflows/marsel-unified-control-plane.yml
+- Canonical control plane: `.github/workflows/marsel-unified-control-plane.yml`
 - Canonical governance: 00_PROJECT_CONTROL/GITHUB_GOVERNANCE.md
 - Repository registry: 00_PROJECT_CONTROL/REPOSITORY_REGISTRY.md
-- Project structure: 00_PROJECT_CONTROL/PROJECT_DATA_STRUCTURE.md`
+- Project structure: `00_PROJECT_CONTROL/PROJECT_DATA_STRUCTURE.md`
 - Automated work process: 00_PROJECT_CONTROL/WORKFLOW.md
 - Canonical documentation: MARSEL_ROAPP_UNIFIED_SYSTEM.md and docs/PROJECT_MASTER_CONTROL.md
 - Canonical system document: [MARSEL_ROAPP_UNIFIED_SYSTEM.md](MARSEL_ROAPP_UNIFIED_SYSTEM.md)
