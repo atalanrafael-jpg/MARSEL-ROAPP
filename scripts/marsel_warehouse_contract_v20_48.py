@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
-"""MARSEL V20.48 — documented RO App warehouse-list contract diagnostic.
+"""MARSEL warehouse-list contract diagnostic for the documented RO App v2 API.
 
-READ-ONLY only. The warehouse-list endpoint is documented outside the /v2
-namespace, while the current API reference uses /v2 for many other resources.
+READ-ONLY only. The official API reference documents GET /v2/warehouse/.
 Undocumented compatibility routes are never promoted to PASS evidence.
 """
 from __future__ import annotations
@@ -20,7 +19,8 @@ TIMEOUT = float(os.getenv("ROAPP_TIMEOUT", "30"))
 INTERVAL = max(float(os.getenv("ROAPP_MIN_REQUEST_INTERVAL", "0.34")), 0.34)
 OUT = os.getenv("WAREHOUSE_DIAGNOSTIC_OUTPUT", "marsel-unified-warehouse-contract.json")
 DOC = "https://roappua.readme.io/reference/get-warehouses"
-DOCUMENTED_PATH = "/warehouse/"
+DOCUMENTED_PATH = "/v2/warehouse/"
+PROBE_TYPES = ("product", "asset")
 
 
 def get(path: str, query: dict[str, str] | None = None):
@@ -33,7 +33,7 @@ def get(path: str, query: dict[str, str] | None = None):
         headers={
             "Authorization": f"Bearer {KEY}",
             "Accept": "application/json",
-            "User-Agent": "MARSEL-V20.48-READONLY",
+            "User-Agent": "MARSEL-V20.48.1-READONLY",
         },
         method="GET",
     )
@@ -76,6 +76,11 @@ def summarize(result):
                 "top_level_type": None,
                 "keys": None,
                 "candidate_counts": {},
+                "data_is_list": False,
+                "data_count": None,
+                "count": None,
+                "success": None,
+                "collection_complete": False,
             }
         )
         return summary
@@ -88,45 +93,71 @@ def summarize(result):
                 counts[key] = len(value)
             elif isinstance(value, dict):
                 counts[key] = {"type": "dict", "keys": sorted(value.keys())[:30]}
+        data = payload.get("data")
         summary["candidate_counts"] = counts
-        summary["page"] = payload.get("page")
+        summary["data_is_list"] = isinstance(data, list)
+        summary["data_count"] = len(data) if isinstance(data, list) else None
         summary["count"] = payload.get("count")
         summary["success"] = payload.get("success")
-    elif isinstance(payload, list):
+    else:
         summary["keys"] = None
-        summary["candidate_counts"] = {"root_list": len(payload)}
+        summary["candidate_counts"] = {"root_list": len(payload)} if isinstance(payload, list) else {}
+        summary["data_is_list"] = isinstance(payload, list)
+        summary["data_count"] = len(payload) if isinstance(payload, list) else None
+        summary["count"] = None
+        summary["success"] = None
+    summary["collection_complete"] = is_complete_list_response(summary)
     return summary
 
+
+def is_complete_list_response(probe):
+    """Require a valid documented list shape and a matching declared count."""
+    count = probe.get("count")
+    data_count = probe.get("data_count")
+    success = probe.get("success")
+    return (
+        probe.get("http") == 200
+        and probe.get("json_valid") is True
+        and probe.get("data_is_list") is True
+        and isinstance(count, int)
+        and count == data_count
+        and (success is None or success is True)
+    )
 
 def main() -> int:
     if not KEY:
         raise SystemExit("ROAPP_API_KEY is required")
 
+    # Both values are explicitly documented by the current v2 API reference.
+    # Do not add page/limit or branch identifiers unless the contract documents them.
     probes = [
-        summarize(get(DOCUMENTED_PATH, {"type": "product"})),
-        summarize(get(DOCUMENTED_PATH, {"type": "product", "page": "1"})),
+        summarize(get(DOCUMENTED_PATH, {"type": warehouse_type}))
+        for warehouse_type in PROBE_TYPES
     ]
-    list_ok = any(
-        p.get("http") == 200
-        and p.get("json_valid")
-        and any(
-            isinstance(v, int) and v > 0
-            for v in (p.get("candidate_counts") or {}).values()
+    for warehouse_type, probe in zip(PROBE_TYPES, probes):
+        print(
+            "WAREHOUSE_PROBE "
+            f"type={warehouse_type} http={probe.get('http')} "
+            f"data_count={probe.get('data_count')} declared_count={probe.get('count')} "
+            f"error={probe.get('error')}"
         )
-        for p in probes
+    list_ok = len(probes) == len(PROBE_TYPES) and all(
+        is_complete_list_response(probe) for probe in probes
     )
     result = "PASS" if list_ok else "NOT_VERIFIED"
     report = {
-        "version": "20.48",
+        "version": "20.48.1",
         "mode": "READ_ONLY",
         "readonly": True,
         "result": result,
         "official_documentation": DOC,
-        "documented_contract": "/warehouse/",
+        "documented_contract": DOCUMENTED_PATH,
+        "documented_type_values": list(PROBE_TYPES),
         "api_root": API_ROOT,
-        "probed_path": "/warehouse/",
+        "probed_path": DOCUMENTED_PATH,
         "probes": probes,
         "warehouse_list_contract_verified": list_ok,
+        "collection_completeness_verified": list_ok,
         "confirmed_live_gets": [
             p for p in probes if p.get("http") == 200 and p.get("json_valid")
         ],
@@ -141,9 +172,10 @@ def main() -> int:
     print(f"WAREHOUSE_CONTRACT_RESULT={result}")
     print(f"WAREHOUSE_LIST_CONTRACT_VERIFIED={str(list_ok).lower()}")
     print(f"WAREHOUSE_CONFIRMED_LIVE_GETS={len(report['confirmed_live_gets'])}")
+    print(f"WAREHOUSE_COLLECTION_COMPLETENESS_VERIFIED={str(list_ok).lower()}")
     print("WRITE_REQUESTS_MADE=0")
     print("RO_APP_DATA_MUTATED=false")
-    return 0
+    return 0 if list_ok else 2
 
 
 if __name__ == "__main__":
