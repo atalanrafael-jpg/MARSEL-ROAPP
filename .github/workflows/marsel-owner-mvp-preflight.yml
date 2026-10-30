@@ -11,7 +11,7 @@ on:
       - "05_MARSEL_CURRENT_STATE.md"
       - "docs/**"
       - "scripts/marsel_owner_mvp_preflight.py"
-      - "github/workflows/marsel-owner-mvp-preflight.yml"
+      - ".github/workflows/marsel-owner-mvp-preflight.yml"
   workflow_dispatch:
 
 permissions:
@@ -38,7 +38,7 @@ jobs:
 
       - name: Run tests when present
         shell: bash
-        run: 
+        run: |
           if compgen -G "tests/test_*.py" > /dev/null; then
             python -m pip install -r requirements.txt
             python -m pytest -q
