@@ -18,9 +18,10 @@ def test_public_repository_guard_runs_before_credentials_and_backup_export():
     assert "exit 2" in workflow
 
 
-def test_backup_artifact_retention_is_limited_to_seven_days():
+def test_backup_and_restore_artifacts_have_seven_day_retention():
     workflow = Path(
         ".github/workflows/marsel-backup-evidence-producer.yml"
     ).read_text(encoding="utf-8")
 
-    assert "retention-days: 7" in workflow
+    assert workflow.count("retention-days: 7") == 2
+    assert "retention-days: 90" not in workflow
