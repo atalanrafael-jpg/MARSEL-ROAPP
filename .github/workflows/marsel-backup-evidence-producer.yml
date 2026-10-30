@@ -25,6 +25,19 @@ jobs:
         with:
           ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
 
+      - name: Block raw backup export from a public repository
+        env:
+          REPOSITORY_PRIVATE: ${{ github.event.repository.private }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "$REPOSITORY_PRIVATE" != "true" ]; then
+            echo "::error::Full RO App backup contains business/customer records. The repository is public; export and artifact upload are blocked until an approved private backup destination is configured."
+            echo "BACKUP_EXPORT_BLOCKED=PUBLIC_REPOSITORY"
+            exit 2
+          fi
+          echo "BACKUP_DESTINATION_REPOSITORY_PRIVATE=true"
+
       - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
@@ -108,7 +121,7 @@ jobs:
             backup_evidence.json
             marsel-full-readonly-backup-v1.json
           if-no-files-found: error
-          retention-days: 90
+          retention-days: 7
 
   restore-verification:
     needs: backup-evidence
@@ -170,4 +183,4 @@ jobs:
             restore_evidence.json
             marsel-restore-staging.sqlite
           if-no-files-found: error
-          retention-days: 90
+          retention-days: 7
