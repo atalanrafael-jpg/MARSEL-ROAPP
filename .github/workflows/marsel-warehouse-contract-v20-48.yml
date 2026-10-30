@@ -1,7 +1,9 @@
-name: MARSEL Warehouse Contract V20.48
+name: MARSEL Warehouse Contract V20.48.1
 
 on:
   workflow_dispatch:
+  pull_request:
+    branches: [main]
   push:
     branches: [main]
 
@@ -27,7 +29,7 @@ jobs:
           ROAPP_API_ROOT: https://api.roapp.io
           ROAPP_TIMEOUT: "30"
           ROAPP_MIN_REQUEST_INTERVAL: "0.34"
-          WAREHOUSE_DIAGNOSTIC_OUTPUT: marsel-warehouse-contract-v20-48.json
+          WAREHOUSE_DIAGNOSTIC_OUTPUT: marsel-warehouse-contract-v20-48-1.json
         run: python scripts/marsel_warehouse_contract_v20_48.py
       - name: Verify read-only invariant
         run: |
@@ -44,7 +46,7 @@ jobs:
       - name: Upload evidence
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
-          name: marsel-warehouse-contract-v20-48
+          name: marsel-warehouse-contract-v20-48-1
           path: marsel-warehouse-contract-v20-48.json
           if-no-files-found: error
           retention-days: 90
