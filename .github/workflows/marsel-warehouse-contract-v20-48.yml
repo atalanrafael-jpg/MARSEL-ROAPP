@@ -35,18 +35,18 @@ jobs:
         run: |
           test "$(python - <<'PY'
           import json
-          print(json.load(open('marsel-warehouse-contract-v20-48.json', encoding='utf-8'))['write_requests_made'])
+          print(json.load(open('marsel-warehouse-contract-v20-48-1.json', encoding='utf-8'))['write_requests_made'])
           PY
           )" = "0"
           test "$(python - <<'PY'
           import json
-          print(json.load(open('marsel-warehouse-contract-v20-48.json', encoding='utf-8'))['ro_app_data_mutated'])
+          print(json.load(open('marsel-warehouse-contract-v20-48-1.json', encoding='utf-8'))['ro_app_data_mutated'])
           PY
           )" = "False"
       - name: Upload evidence
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: marsel-warehouse-contract-v20-48-1
-          path: marsel-warehouse-contract-v20-48.json
+          path: marsel-warehouse-contract-v20-48-1.json
           if-no-files-found: error
           retention-days: 90
