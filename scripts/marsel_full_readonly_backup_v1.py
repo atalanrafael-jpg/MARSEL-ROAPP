@@ -12,6 +12,7 @@ import hashlib, json, os, sys, time
 from datetime import datetime, timezone
 from pathlib import Path
 import httpx
+from marsel_date_windows import build_date_windows
 
 BASE = os.environ.get("ROAPP_API_BASE", "https://api.roapp.io/v2").rstrip("/")
 KEY = os.environ.get("ROAPP_API_KEY", "")
@@ -68,78 +69,98 @@ write_requests = 0
 with httpx.Client(timeout=20) as c:
     for p in sorted(paths):
         rows = []
-        page = 1
         endpoint_ok = True
         endpoint_error = None
         response_kind = None
         pages_read = 0
-        while page <= MAX_PAGES:
-            try:
-                params = {"page": page, "limit": PAGE_SIZE}
-                if p == "/company/work-schedule/days":
-                    # This documented GET requires an explicit date window.
-                    # Keep the window configurable and deterministic; it does
-                    # not grant or perform any mutation capability.
-                    date_from = os.environ.get("ROAPP_WORK_SCHEDULE_DATE_FROM", "")
-                    date_to = os.environ.get("ROAPP_WORK_SCHEDULE_DATE_TO", "")
-                    if not date_from or not date_to:
-                        raise RuntimeError(
-                            "ROAPP_WORK_SCHEDULE_DATE_FROM and "
-                            "ROAPP_WORK_SCHEDULE_DATE_TO are required for "
-                            "/company/work-schedule/days"
-                        )
-                    params.update({"date_from": date_from, "date_to": date_to})
-                r = c.get(BASE + p, headers=headers, params=params)
-                if r.status_code != 200:
+
+        # RO App limits this endpoint to 92 calendar days per request.
+        # Split the configured inclusive range into contiguous, non-overlapping
+        # windows and restart pagination for each window.
+        date_windows = [(None, None)]
+        if p == "/company/work-schedule/days":
+            date_from = os.environ.get("ROAPP_WORK_SCHEDULE_DATE_FROM", "")
+            date_to = os.environ.get("ROAPP_WORK_SCHEDULE_DATE_TO", "")
+            if not date_from or not date_to:
+                endpoint_ok = False
+                endpoint_error = (
+                    "ROAPP_WORK_SCHEDULE_DATE_FROM and "
+                    "ROAPP_WORK_SCHEDULE_DATE_TO are required for "
+                    "/company/work-schedule/days"
+                )
+            else:
+                try:
+                    date_windows = build_date_windows(date_from, date_to)
+                except ValueError as e:
                     endpoint_ok = False
-                    endpoint_error = f"HTTP {r.status_code}: {r.text[:500]}"
-                    break
-                payload = r.json()
-                has_paging = False
-                total_pages = None
-                if isinstance(payload, dict):
-                    data = payload.get("data")
-                    if not isinstance(data, list):
-                        data = payload.get("items")
-                    paging = payload.get("paging")
-                    has_paging = isinstance(paging, dict)
-                    if has_paging:
-                        total_pages = paging.get("total_pages") or paging.get("totalPages")
-                    if isinstance(data, list):
+                    endpoint_error = f"invalid work-schedule date range: {e}"
+
+        for window_start, window_end in date_windows:
+            if not endpoint_ok:
+                break
+            page = 1
+            while page <= MAX_PAGES:
+                try:
+                    params = {"page": page, "limit": PAGE_SIZE}
+                    if window_start is not None and window_end is not None:
+                        params.update({
+                            "date_from": window_start.isoformat(),
+                            "date_to": window_end.isoformat(),
+                        })
+                    r = c.get(BASE + p, headers=headers, params=params)
+                    if r.status_code != 200:
+                        endpoint_ok = False
+                        endpoint_error = f"HTTP {r.status_code}: {r.text[:500]}"
+                        break
+                    payload = r.json()
+                    has_paging = False
+                    total_pages = None
+                    if isinstance(payload, dict):
+                        data = payload.get("data")
+                        if not isinstance(data, list):
+                            data = payload.get("items")
+                        paging = payload.get("paging")
+                        has_paging = isinstance(paging, dict)
+                        if has_paging:
+                            total_pages = paging.get("total_pages") or paging.get("totalPages")
+                        if isinstance(data, list):
+                            response_kind = "collection"
+                        else:
+                            data = [payload]
+                            response_kind = "singleton"
+                    elif isinstance(payload, list):
+                        data = payload
                         response_kind = "collection"
                     else:
-                        data = [payload]
-                        response_kind = "singleton"
-                elif isinstance(payload, list):
-                    data = payload
-                    response_kind = "collection"
-                else:
+                        endpoint_ok = False
+                        endpoint_error = "response is neither a JSON object nor a JSON list"
+                        break
+
+                    rows.extend(x for x in data if isinstance(x, dict))
+                    pages_read += 1
+
+                    # Only paginate when the live response explicitly exposes
+                    # pagination metadata. A bare JSON list/dict collection is a
+                    # complete singleton response; blindly adding page/limit to
+                    # such endpoints can repeat the same records indefinitely.
+                    if response_kind == "singleton" or not has_paging:
+                        break
+                    if isinstance(total_pages, int) and page >= total_pages:
+                        break
+                    if len(data) < PAGE_SIZE:
+                        break
+                    page += 1
+                    time.sleep(INTERVAL)
+                except Exception as e:
                     endpoint_ok = False
-                    endpoint_error = "response is neither a JSON object nor a JSON list"
+                    endpoint_error = f"{type(e).__name__}: {e}"
                     break
-
-                rows.extend(x for x in data if isinstance(x, dict))
-                pages_read += 1
-
-                # Only paginate when the live response explicitly exposes
-                # pagination metadata. A bare JSON list/dict collection is a
-                # complete singleton response; blindly adding page/limit to
-                # such endpoints can repeat the same 50 records indefinitely.
-                if response_kind == "singleton" or not has_paging:
-                    break
-                if isinstance(total_pages, int) and page >= total_pages:
-                    break
-                if len(data) < PAGE_SIZE:
-                    break
-                page += 1
-                time.sleep(INTERVAL)
-            except Exception as e:
+            else:
                 endpoint_ok = False
-                endpoint_error = f"{type(e).__name__}: {e}"
+                endpoint_error = f"pagination exceeded MARSEL_MAX_PAGES_PER_ENDPOINT={MAX_PAGES}"
+
+            if not endpoint_ok:
                 break
-        else:
-            endpoint_ok = False
-            endpoint_error = f"pagination exceeded MARSEL_MAX_PAGES_PER_ENDPOINT={MAX_PAGES}"
 
         result = {
             "path": p,
