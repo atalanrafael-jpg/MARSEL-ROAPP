@@ -134,6 +134,13 @@ def main() -> int:
         summarize(get(DOCUMENTED_PATH, {"type": warehouse_type}))
         for warehouse_type in PROBE_TYPES
     ]
+    for warehouse_type, probe in zip(PROBE_TYPES, probes):
+        print(
+            "WAREHOUSE_PROBE "
+            f"type={warehouse_type} http={probe.get('http')} "
+            f"data_count={probe.get('data_count')} declared_count={probe.get('count')} "
+            f"error={probe.get('error')}"
+        )
     list_ok = len(probes) == len(PROBE_TYPES) and all(
         is_complete_list_response(probe) for probe in probes
     )
