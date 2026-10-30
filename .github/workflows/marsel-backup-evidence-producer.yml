@@ -33,7 +33,6 @@ jobs:
           set -euo pipefail
           if [ "$REPOSITORY_PRIVATE" != "true" ]; then
 
-echo "::error::Full RO App backup contains business/customer records. The canonical repository is public; export and artifact upload are blocked until an approved private backup destination is configured."
             echo "::error::Full RO App backup contains business/customer records. The repository is public; export and artifact upload are blocked until an approved private backup destination is configured."
             echo "BACKUP_EXPORT_BLOCKED=PUBLIC_REPOSITORY"
             exit 2
