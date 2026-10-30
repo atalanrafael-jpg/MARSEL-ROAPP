@@ -33,7 +33,7 @@ def get(path: str, query: dict[str, str] | None = None):
         headers={
             "Authorization": f"Bearer {KEY}",
             "Accept": "application/json",
-            "User-Agent": "MARSEL-V20.49-READONLY",
+            "User-Agent": "MARSEL-V20.48.1-READONLY",
         },
         method="GET",
     )
@@ -139,7 +139,7 @@ def main() -> int:
     )
     result = "PASS" if list_ok else "NOT_VERIFIED"
     report = {
-        "version": "20.49",
+        "version": "20.48.1",
         "mode": "READ_ONLY",
         "readonly": True,
         "result": result,
