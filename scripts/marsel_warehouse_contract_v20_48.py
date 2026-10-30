@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
-"""MARSEL V20.48 — documented RO App warehouse-list contract diagnostic.
+"""MARSEL warehouse-list contract diagnostic for the documented RO App v2 API.
 
-READ-ONLY only. The warehouse-list endpoint is documented outside the /v2
-namespace, while the current API reference uses /v2 for many other resources.
+READ-ONLY only. The official API reference documents GET /v2/warehouse/.
 Undocumented compatibility routes are never promoted to PASS evidence.
 """
 from __future__ import annotations
@@ -34,7 +33,7 @@ def get(path: str, query: dict[str, str] | None = None):
         headers={
             "Authorization": f"Bearer {KEY}",
             "Accept": "application/json",
-            "User-Agent": "MARSEL-V20.48-READONLY",
+            "User-Agent": "MARSEL-V20.49-READONLY",
         },
         method="GET",
     )
