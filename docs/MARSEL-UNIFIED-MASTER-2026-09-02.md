@@ -5,7 +5,7 @@
 - System: **MARSEL ROAPP**
 - Business contour: **Ювелирная студия MARSEL**
 - Technology contour: **ROAPP**
-- Canonical repository: `atalanrafael-jpg/MARSEL-Ro-app`
+- Canonical repository: `atalanrafael-jpg/MARSEL-ROAPP`
 - Canonical branch: `main`
 - Canonical live audit: `.github/workflows/marsel-unified-control-plane.yml`
 - Historical material: `старые данные/`
@@ -55,7 +55,11 @@ Direct full permitted backup/export and an independently verified restore/integr
 Reconcile the current authoritative API documentation against the canonical registry and verify required entities with safe live GETs.
 
 ### P0.3 Warehouse contract
-The authoritative warehouse-list contract is `GET https://api.roapp.io/warehouse/`, with documented query parameters including `type` (default `product`) and optional `branch_id`. The warehouse-list endpoint is outside the general `/v2` base path. `/v2/warehouse/` is not the canonical warehouse-list contract. The corrected implementation is tracked in PR #114, but the warehouse gate remains `NOT_VERIFIED` until fresh authorized READ_ONLY live evidence is captured.
+The current official RO App API reference (v2.0.1) documents `GET https://api.roapp.io/v2/warehouse/`. It documents:
+- `type`: optional; defaults to `product`; allowed values are `product` and `asset`.
+- `branch_id`: optional location identifier.
+
+The canonical diagnostic `scripts/marsel_warehouse_contract_v20_48.py` uses this documented path and probes only the two documented `type` values. On 2026-10-30, both live READ_ONLY probes returned HTTP 404. Therefore, the code path matches the currently published API reference, but the live warehouse contract is **NOT_VERIFIED**. The 404 cause is **NOT_VERIFIED**; do not switch to an undocumented alternative path or guess a `branch_id`. The next diagnostic must use an authorized, documented read-only request and confirm the account's API access with RO App support if the 404 persists. No warehouse data or production configuration was changed.
 
 ### P0.4 Production gate evidence inventory
 Required evidence must be real, current and traceable; missing evidence remains `REVIEW_REQUIRED`.
@@ -90,7 +94,7 @@ After safety gates are closed:
 - Do not delete issues merely because they are old; consolidate only after checking dependencies and preserving traceability.
 - Do not keep multiple active implementations of the same control responsibility.
 - Versioned scripts remain only when referenced by an active dependency; otherwise archive after dependency removal and fresh CI verification.
-- All canonical links must use `atalanrafael-jpg/MARSEL-Ro-app`.
+- All canonical links must use `atalanrafael-jpg/MARSEL-ROAPP`.
 
 ## 10. Completion definition
 
