@@ -13,6 +13,7 @@ def test_public_repository_guard_runs_before_credentials_and_backup_export():
 
     assert guard < dependency_install < secret_check < full_export
     assert "REPOSITORY_PRIVATE" in workflow
+    assert "REPOSITORY_PRIVATE: ${{ github.event.repository.private }}" in workflow
     assert 'if [ "$REPOSITORY_PRIVATE" != "true" ]; then' in workflow
     assert "BACKUP_EXPORT_BLOCKED=PUBLIC_REPOSITORY" in workflow
     assert "exit 2" in workflow
