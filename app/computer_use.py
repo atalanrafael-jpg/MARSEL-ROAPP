@@ -232,9 +232,11 @@ class ComputerUseService:
 
         runtime_url, runtime_token, allowed_origins = self._preflight()
         configured_max = int(getattr(self.settings, "computer_use_max_turns", 8))
-        turn_limit = configured_max if max_turns is None else max_turns
-        if not isinstance(turn_limit, int) or not 1 <= turn_limit <= configured_max:
-            raise ComputerUseError(f"max_turns must be between 1 and {configured_max}.")
+        if max_turns is not None and (not isinstance(max_turns, int) or max_turns < 1):
+            raise ComputerUseError("max_turns must be a positive integer.")
+        turn_limit = configured_max if max_turns is None else min(max_turns, configured_max)
+        if configured_max < 1 or configured_max > 12:
+            raise ComputerUseError("Server Computer Use turn limit must be between 1 and 12.")
 
         code_limit = int(getattr(self.settings, "computer_use_max_code_chars", 20_000))
         model = getattr(self.settings, "openai_computer_use_model", "gpt-6-astra")
@@ -334,6 +336,9 @@ class ComputerUseService:
                 max_task_images = int(getattr(self.settings, "computer_use_max_output_images", 4))
                 if len(screenshots) + len(new_screenshots) > max_task_images:
                     raise ComputerUseError("Computer-use task exceeded its total screenshot limit.")
+                total_image_chars = sum(len(image) for image in screenshots + new_screenshots)
+                if total_image_chars > 16_000_000:
+                    raise ComputerUseError("Computer-use task exceeded its total screenshot byte budget.")
                 screenshots.extend(new_screenshots)
                 next_input.append(
                     {
