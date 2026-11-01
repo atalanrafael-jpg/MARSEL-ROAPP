@@ -20,7 +20,9 @@ INTERVAL = max(float(os.getenv("ROAPP_MIN_REQUEST_INTERVAL", "0.34")), 0.34)
 OUT = os.getenv("WAREHOUSE_DIAGNOSTIC_OUTPUT", "marsel-unified-warehouse-contract.json")
 DOC = "https://roappua.readme.io/reference/get-warehouses"
 DOCUMENTED_PATH = "/v2/warehouse/"
+CONTROL_PATH = "/v2/tasks"
 PROBE_TYPES = ("product", "asset")
+PROBE_QUERIES = (None, {"type": "product"}, {"type": "asset"})
 
 
 def get(path: str, query: dict[str, str] | None = None):
@@ -67,6 +69,7 @@ def get(path: str, query: dict[str, str] | None = None):
 def summarize(result):
     body = result.get("body", "")
     summary = {k: result.get(k) for k in ("url", "http", "elapsed_s", "error")}
+    summary["error_details"] = {}
     try:
         payload = json.loads(body)
     except Exception:
@@ -99,6 +102,11 @@ def summarize(result):
         summary["data_count"] = len(data) if isinstance(data, list) else None
         summary["count"] = payload.get("count")
         summary["success"] = payload.get("success")
+        summary["error_details"] = {
+            key: (value[:300] if key == "message" and isinstance(value, str) else value)
+            for key in ("code", "message", "success")
+            if (value := payload.get(key, None)) is not None
+        }
     else:
         summary["keys"] = None
         summary["candidate_counts"] = {"root_list": len(payload)} if isinstance(payload, list) else {}
@@ -128,20 +136,36 @@ def main() -> int:
     if not KEY:
         raise SystemExit("ROAPP_API_KEY is required")
 
-    # Both values are explicitly documented by the current v2 API reference.
-    # Do not add page/limit or branch identifiers unless the contract documents them.
+    # First verify that the same Bearer key can reach a separate documented
+    # v2 collection. Only response metadata is retained; task records are discarded.
+    control_probe = summarize(get(CONTROL_PATH))
+    control_details = control_probe.get("error_details", {})
+    print(
+        "WAREHOUSE_API_CONTROL "
+        f"path={CONTROL_PATH} http={control_probe.get('http')} "
+        f"api_code={control_details.get('code')} "
+        f"api_message={control_details.get('message')} "
+        f"error={control_probe.get('error')}"
+    )
+
+    # The current v2 reference documents both type values and says type defaults
+    # to product. Probe the default separately to detect account/runtime drift.
+    # Do not add branch identifiers until a real location ID is independently confirmed.
     probes = [
-        summarize(get(DOCUMENTED_PATH, {"type": warehouse_type}))
-        for warehouse_type in PROBE_TYPES
+        summarize(get(DOCUMENTED_PATH, query))
+        for query in PROBE_QUERIES
     ]
-    for warehouse_type, probe in zip(PROBE_TYPES, probes):
+    for query, probe in zip(PROBE_QUERIES, probes):
+        probe_type = query["type"] if query else "default"
+        details = probe.get("error_details", {})
         print(
             "WAREHOUSE_PROBE "
-            f"type={warehouse_type} http={probe.get('http')} "
+            f"type={probe_type} http={probe.get('http')} "
             f"data_count={probe.get('data_count')} declared_count={probe.get('count')} "
+            f"api_code={details.get('code')} api_message={details.get('message')} "
             f"error={probe.get('error')}"
         )
-    list_ok = len(probes) == len(PROBE_TYPES) and all(
+    list_ok = len(probes) == len(PROBE_QUERIES) and all(
         is_complete_list_response(probe) for probe in probes
     )
     result = "PASS" if list_ok else "NOT_VERIFIED"
@@ -153,6 +177,11 @@ def main() -> int:
         "official_documentation": DOC,
         "documented_contract": DOCUMENTED_PATH,
         "documented_type_values": list(PROBE_TYPES),
+        "documented_probe_queries": list(PROBE_QUERIES),
+        "api_auth_control": {
+            key: control_probe.get(key)
+            for key in ("url", "http", "elapsed_s", "error", "json_valid", "data_count", "count", "error_details")
+        },
         "api_root": API_ROOT,
         "probed_path": DOCUMENTED_PATH,
         "probes": probes,

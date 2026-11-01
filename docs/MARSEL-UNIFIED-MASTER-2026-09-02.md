@@ -51,6 +51,8 @@ These figures are evidence for their respective runs, not claims about a perpetu
 ### P0.1 Backup + restore
 Direct full permitted backup/export and an independently verified restore/integrity test are required.
 
+**2026-11-01 checkpoint:** the backup producer workflow explicitly blocks full RO App export while the canonical GitHub repository is public. The current repository is verified public; no full backup was exported and no backup evidence artifact was produced. Do not bypass this guard or place customer/business backups in the public repository. A private, approved backup destination must be configured before retrying.
+
 ### P0.2 Current API/entity completeness
 Reconcile the current authoritative API documentation against the canonical registry and verify required entities with safe live GETs.
 
@@ -60,6 +62,8 @@ The current official RO App API reference (v2.0.1) documents `GET https://api.ro
 - `branch_id`: optional location identifier.
 
 The canonical diagnostic `scripts/marsel_warehouse_contract_v20_48.py` uses this documented path and probes only the two documented `type` values. On 2026-10-30, both live READ_ONLY probes returned HTTP 404. Therefore, the code path matches the currently published API reference, but the live warehouse contract is **NOT_VERIFIED**. The 404 cause is **NOT_VERIFIED**; do not switch to an undocumented alternative path or guess a `branch_id`. The next diagnostic must use an authorized, documented read-only request and confirm the account's API access with RO App support if the 404 persists. No warehouse data or production configuration was changed.
+
+**2026-11-01 follow-up:** using the same Bearer key, the documented control request `GET /v2/tasks` returned HTTP 200. Three warehouse requests — default type, `type=product`, and `type=asset` — each returned HTTP 404 with API response `code=404`, `message=Page not found.` This confirms that the key and another v2 resource are reachable, but does not prove warehouse permissions. The warehouse route remains **NOT_VERIFIED**. Check the API-key employee's access to the required location and warehouses, then ask RO App support to confirm the published warehouse route for this account if the issue persists. Sources: [Get Warehouses](https://roappua.readme.io/reference/get-warehouses), [API general information](https://help.roapp.io/en/articles/3393227-api-general-information).
 
 ### P0.4 Production gate evidence inventory
 Required evidence must be real, current and traceable; missing evidence remains `REVIEW_REQUIRED`.
