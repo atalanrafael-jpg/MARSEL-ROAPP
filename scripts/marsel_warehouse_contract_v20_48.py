@@ -20,6 +20,7 @@ INTERVAL = max(float(os.getenv("ROAPP_MIN_REQUEST_INTERVAL", "0.34")), 0.34)
 OUT = os.getenv("WAREHOUSE_DIAGNOSTIC_OUTPUT", "marsel-unified-warehouse-contract.json")
 DOC = "https://roappua.readme.io/reference/get-warehouses"
 DOCUMENTED_PATH = "/v2/warehouse/"
+CONTROL_PATH = "/v2/tasks"
 PROBE_TYPES = ("product", "asset")
 PROBE_QUERIES = (None, {"type": "product"}, {"type": "asset"})
 
@@ -135,6 +136,18 @@ def main() -> int:
     if not KEY:
         raise SystemExit("ROAPP_API_KEY is required")
 
+    # First verify that the same Bearer key can reach a separate documented
+    # v2 collection. Only response metadata is retained; task records are discarded.
+    control_probe = summarize(get(CONTROL_PATH))
+    control_details = control_probe.get("error_details", {})
+    print(
+        "WAREHOUSE_API_CONTROL "
+        f"path={CONTROL_PATH} http={control_probe.get('http')} "
+        f"api_code={control_details.get('code')} "
+        f"api_message={control_details.get('message')} "
+        f"error={control_probe.get('error')}"
+    )
+
     # The current v2 reference documents both type values and says type defaults
     # to product. Probe the default separately to detect account/runtime drift.
     # Do not add branch identifiers until a real location ID is independently confirmed.
@@ -165,6 +178,10 @@ def main() -> int:
         "documented_contract": DOCUMENTED_PATH,
         "documented_type_values": list(PROBE_TYPES),
         "documented_probe_queries": list(PROBE_QUERIES),
+        "api_auth_control": {
+            key: control_probe.get(key)
+            for key in ("url", "http", "elapsed_s", "error", "json_valid", "data_count", "count", "error_details")
+        },
         "api_root": API_ROOT,
         "probed_path": DOCUMENTED_PATH,
         "probes": probes,
