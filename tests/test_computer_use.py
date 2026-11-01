@@ -158,3 +158,21 @@ def test_tool_loop_stops_after_configured_turn_limit():
 
     with pytest.raises(ComputerUseError, match="turn limit"):
         service.run_task("Run a bounded local task.", max_turns=1)
+
+
+def test_non_local_http_origin_is_rejected():
+    config = configured_settings()
+    config.computer_use_allowed_origins = ["http://example.com"]
+    service = ComputerUseService(settings_obj=config)
+
+    with pytest.raises(ComputerUseError, match="HTTPS"):
+        service.run_task("Open a page")
+
+
+def test_origin_entries_must_be_exact_origins():
+    config = configured_settings()
+    config.computer_use_allowed_origins = ["http://127.0.0.1:8000/private"]
+    service = ComputerUseService(settings_obj=config)
+
+    with pytest.raises(ComputerUseError, match="exact HTTP"):
+        service.run_task("Open a page")
