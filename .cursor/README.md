@@ -4,9 +4,9 @@ Cursor is an execution surface for the single canonical MARSEL ROAPP system. It 
 
 ## Canonical contract
 
-- GitHub repository: `atalanrafael-jpg/MARSEL-Ro-app`
-- Canonical branch: `main`
-- Cursor work: temporary agent branch -> review -> PR -> `main`
+- GitHub repository: `atalanrafael-jpg/MARSEL ROAPP
+- Canonical branch: `main
+- Cursor work: temporary agent branch -> review -> PR -> `main
 - Live RO App default: READ-ONLY
 - Production WRITE: disabled unless the existing production gate explicitly authorizes it with current evidence.
 
@@ -15,9 +15,9 @@ Cursor is an execution surface for the single canonical MARSEL ROAPP system. It 
 Account-level setup cannot be verified or changed from this repository:
 
 1. Connect GitHub in Cursor Integrations.
-2. Grant Cursor access to `atalanrafael-jpg/MARSEL-Ro-app`.
+2. Grant Cursor access to `atalanrafael-jpg/MARSEL ROAPP.
 3. Open Cursor Cloud Agents and select this repository.
-4. Confirm the repository environment uses `.cursor/environment.json`.
+4. Confirm the repository environment uses `.cursor/environment.json.
 5. Configure any required MCP server in Cursor's MCP settings.
 6. Add secrets only through Cursor's secret management; never commit credentials.
 
@@ -31,8 +31,8 @@ Those account-level items remain UNVERIFIED until a direct Cursor run provides e
 
 Every agent must:
 
-- read the current `main` state before editing;
-- follow `.cursor/rules/marsel-roapp.mdc`;
+- read the current `main state before editing;
+- follow `.cursor/rules/MARSEL ROAPP.mdc`;
 - keep production RO App operations read-only;
 - never expose or commit secrets;
 - run relevant tests/checks;
@@ -45,4 +45,4 @@ MARSEL ROAPP contains its own MCP implementation and setup documentation. Cursor
 
 ## Source of truth
 
-GitHub `main` remains authoritative. Cursor is an agent/execution surface only.
+GitHub `main remains authoritative. Cursor is an agent/execution surface only.
