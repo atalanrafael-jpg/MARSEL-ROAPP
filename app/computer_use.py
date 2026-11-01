@@ -83,7 +83,11 @@ def _normalize_origins(values: Any) -> list[str]:
     for value in values:
         if not isinstance(value, str) or not value.strip():
             raise ComputerUseError("Computer-use origin allowlist contains an invalid entry.")
-        parsed = urlsplit(value.strip())
+        try:
+            parsed = urlsplit(value.strip())
+            _ = parsed.port
+        except ValueError as exc:
+            raise ComputerUseError("Computer-use origin allowlist contains an invalid URL.") from exc
         if (
             parsed.scheme not in {"http", "https"}
             or not parsed.hostname
@@ -103,9 +107,20 @@ def _normalize_origins(values: Any) -> list[str]:
 
 
 def _validate_runtime_url(value: str) -> str:
-    parsed = urlsplit(value or "")
-    if not parsed.hostname or parsed.scheme not in {"http", "https"}:
-        raise ComputerUseError("Computer-use runtime URL is not configured.")
+    try:
+        parsed = urlsplit(value or "")
+        _ = parsed.port
+    except ValueError as exc:
+        raise ComputerUseError("Computer-use runtime URL is invalid.") from exc
+    if (
+        not parsed.hostname
+        or parsed.scheme not in {"http", "https"}
+        or parsed.username
+        or parsed.password
+        or parsed.query
+        or parsed.fragment
+    ):
+        raise ComputerUseError("Computer-use runtime URL is not configured correctly.")
     if parsed.scheme != "https" and parsed.hostname not in {"localhost", "127.0.0.1", "::1"}:
         raise ComputerUseError("Computer-use runtime must use HTTPS outside localhost.")
     return value
@@ -313,9 +328,13 @@ class ComputerUseService:
                     {"policy_enforced": True, "output": observations},
                     max_images=int(getattr(self.settings, "computer_use_max_output_images", 4)),
                 )
-                screenshots.extend(
+                new_screenshots = [
                     item["image_url"] for item in observations if item["type"] == "input_image"
-                )
+                ]
+                max_task_images = int(getattr(self.settings, "computer_use_max_output_images", 4))
+                if len(screenshots) + len(new_screenshots) > max_task_images:
+                    raise ComputerUseError("Computer-use task exceeded its total screenshot limit.")
+                screenshots.extend(new_screenshots)
                 next_input.append(
                     {
                         "type": "function_call_output",
