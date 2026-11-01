@@ -56,7 +56,7 @@ checks = {
     "supabase_auth_gate": "require_supabase_user" in main,
     "owner_role_gate": 'role not in {"owner", "admin", "employee"}' in main,
     "read_only_roapp": "Production WRITE is disabled." in readme,
-    "owner_ui": "Owner MVP" in ui,
+    "owner_ui": "Вход владельца" in ui,
     "client_flow": 'from("clients").insert' in ui,
     "repair_flow": 'from("repairs").insert' in ui,
     "status_history": 'from("repair_status_history").insert' in ui,
