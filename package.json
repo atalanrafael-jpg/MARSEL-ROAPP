@@ -1,5 +1,5 @@
 {
-  "name": "primary",
+  "name": "marsel-roapp",
   "version": "1.0.0",
   "description": "**Единая система Ювелирной студии MARSEL.** MARSEL — бизнес-контур; ROAPP — технологический контур той же системы.",
   "main": "index.js",
@@ -12,16 +12,17 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/atalanrafael-jpg/MARSEL-Ro-app.git"
+    "url": "git+https://github.com/atalanrafael-jpg/MARSEL-ROAPP.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/atalanrafael-jpg/MARSEL-Ro-app/issues"
+    "url": "https://github.com/atalanrafael-jpg/MARSEL-ROAPP/issues"
   },
-  "homepage": "https://github.com/atalanrafael-jpg/MARSEL-Ro-app#readme",
+  "homepage": "https://github.com/atalanrafael-jpg/MARSEL-ROAPP#readme",
   "dependencies": {
     "@vercel/analytics": "^2.0.1"
-  }
+  },
+  "private": true
 }
