@@ -7,9 +7,11 @@ from typing import AsyncIterator
 import httpx
 from fastapi import Depends, FastAPI, Header, HTTPException, Query
 from fastapi.responses import HTMLResponse, JSONResponse
+from pydantic import BaseModel, Field
 
 from .agents.repair_estimator import RepairEstimator
 from .ai_assistant import MarselAI
+from .computer_use import ComputerUseError, ComputerUseService
 from .payments import PaymentGateway
 from .automation import get_automation_status, validate_automation_request
 from .audit import audit_order_pages
@@ -36,6 +38,7 @@ notification_service = NotificationService()
 customer_service = CustomerService(repair_service)
 repair_estimator = RepairEstimator()
 ai_assistant = MarselAI()
+computer_use_service = ComputerUseService()
 payment_gateway = PaymentGateway()
 
 if settings.mcp_http_enabled:
@@ -174,6 +177,24 @@ def admin_overview(user: dict = Depends(require_admin_user)):
 @app.get("/api/v1/platform/health", dependencies=[Depends(require_supabase_user)])
 def platform_health():
     return {"ai": ai_assistant.health(), "payments": payment_gateway.health(), "roapp": {"mode": "READ_ONLY", "write_enabled": False}}
+
+
+class ComputerUseRequest(BaseModel):
+    task: str = Field(min_length=1, max_length=6000)
+    max_turns: int = Field(default=8, ge=1, le=8)
+
+
+@app.post("/api/v1/computer-use/run")
+def computer_use_run(
+    payload: ComputerUseRequest,
+    user: dict = Depends(require_admin_user),
+):
+    """Run one bounded Computer Use task in a separate isolated runtime."""
+    try:
+        result = computer_use_service.run_task(payload.task, max_turns=payload.max_turns)
+    except ComputerUseError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    return result
 
 
 @app.post("/api/v1/ai/advise", dependencies=[Depends(require_supabase_user)])
