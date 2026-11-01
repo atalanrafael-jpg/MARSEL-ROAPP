@@ -7,8 +7,10 @@ evidence. External/dynamic producers remain unverified until directly observed.
 """
 from __future__ import annotations
 
+import ast
 import json
 import re
+from pathlib import PurePosixPath
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -31,8 +33,70 @@ EXCLUDED = {
 }
 
 
+def _literal_output_path(node: ast.AST) -> str | None:
+    """Return a literal path or an environment default used to build a Path."""
+    if isinstance(node, ast.Constant) and isinstance(node.value, str):
+        return node.value
+    if not isinstance(node, ast.Call) or not isinstance(node.func, ast.Attribute):
+        return None
+    if node.func.attr != "get" or len(node.args) < 2:
+        return None
+    owner = node.func.value
+    if not (
+        isinstance(owner, ast.Attribute)
+        and owner.attr == "environ"
+        and isinstance(owner.value, ast.Name)
+        and owner.value.id == "os"
+    ):
+        return None
+    default = node.args[1]
+    return default.value if isinstance(default, ast.Constant) and isinstance(default.value, str) else None
+
+
+def _target_names(node: ast.AST) -> set[str]:
+    if isinstance(node, ast.Name):
+        return {node.id}
+    if isinstance(node, (ast.Tuple, ast.List)):
+        names: set[str] = set()
+        for item in node.elts:
+            names.update(_target_names(item))
+        return names
+    return set()
+
+
 def is_direct_producer(source: str, evidence_name: str) -> bool:
-    """Recognize literal file writes, not mere mentions or artifact paths."""
+    """Recognize direct writes, including Path outputs configured by environment defaults."""
+    try:
+        tree = ast.parse(source)
+    except SyntaxError:
+        tree = None
+
+    if tree is not None:
+        output_variables: set[str] = set()
+        for node in ast.walk(tree):
+            if isinstance(node, (ast.Assign, ast.AnnAssign)):
+                value = node.value
+                if (
+                    isinstance(value, ast.Call)
+                    and isinstance(value.func, ast.Name)
+                    and value.func.id == "Path"
+                    and value.args
+                    and PurePosixPath(_literal_output_path(value.args[0]) or "").name == evidence_name
+                ):
+                    targets = node.targets if isinstance(node, ast.Assign) else [node.target]
+                    for target in targets:
+                        output_variables.update(_target_names(target))
+
+        for node in ast.walk(tree):
+            if (
+                isinstance(node, ast.Call)
+                and isinstance(node.func, ast.Attribute)
+                and node.func.attr in {"write_text", "write_bytes"}
+                and isinstance(node.func.value, ast.Name)
+                and node.func.value.id in output_variables
+            ):
+                return True
+
     escaped = re.escape(evidence_name)
     literal_path = rf"(?:[A-Za-z0-9_./-]*?/)?{escaped}"
     patterns = (
