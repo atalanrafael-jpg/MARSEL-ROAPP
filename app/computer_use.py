@@ -203,18 +203,22 @@ class ComputerUseService:
         }
         try:
             with httpx.Client(timeout=timeout, trust_env=False) as client:
-                response = client.post(
+                with client.stream(
+                    "POST",
                     runtime_url,
                     headers={
                         "Authorization": f"Bearer {runtime_token}",
                         "Content-Type": "application/json",
                     },
                     json=payload,
-                )
-                response.raise_for_status()
-                if len(response.content) > 16_000_000:
-                    raise ComputerUseError("Computer-use runtime response exceeds the allowed size.")
-                result = response.json()
+                ) as response:
+                    response.raise_for_status()
+                    body = bytearray()
+                    for chunk in response.iter_bytes():
+                        body.extend(chunk)
+                        if len(body) > 16_000_000:
+                            raise ComputerUseError("Computer-use runtime response exceeds the allowed size.")
+                    result = json.loads(body)
         except ComputerUseError:
             raise
         except (httpx.HTTPError, ValueError) as exc:
@@ -304,6 +308,11 @@ class ComputerUseService:
 
             if turn_index == turn_limit - 1:
                 raise ComputerUseError("Computer-use turn limit reached before a final answer.")
+            max_tool_calls = int(getattr(self.settings, "computer_use_max_tool_calls", 12))
+            if max_tool_calls < 1 or max_tool_calls > 24:
+                raise ComputerUseError("Server Computer Use tool-call limit must be between 1 and 24.")
+            if tool_calls + len(calls) > max_tool_calls:
+                raise ComputerUseError("Computer-use task exceeded its tool-call limit.")
 
             next_input = []
             for call in calls:
