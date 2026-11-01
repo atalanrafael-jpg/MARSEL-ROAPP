@@ -32,7 +32,7 @@ Those account-level items remain UNVERIFIED until a direct Cursor run provides e
 Every agent must:
 
 - read the current `main state before editing;
-- follow `.cursor/rules/MARSEL ROAPP.mdc`;
+- follow `.cursor/rules/MARSEL ROAPP.mdc;
 - keep production RO App operations read-only;
 - never expose or commit secrets;
 - run relevant tests/checks;
