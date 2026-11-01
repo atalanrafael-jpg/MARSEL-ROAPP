@@ -95,6 +95,14 @@ label{display:block;color:var(--muted);font-size:12px;margin:10px 0}input,select
 <div id="aiView" class="view">
 <section class="panel ai"><div class="panelhead"><div><h2>✦ MARSEL AI Copilot</h2><span class="muted">Рекомендации, тексты, разбор ремонта — без доступа AI к серверным секретам.</span></div><span class="pill">Advisory only</span></div>
 <textarea id="aiPrompt" placeholder="Например: составь план коммуникации с клиентом по ремонту часов, если диагностика ещё не завершена."></textarea><div class="row"><button class="btn fit" id="askAI">Получить рекомендацию</button><span class="muted">AI не является источником истины для цены, склада или бухгалтерии.</span></div><div id="aiOut" class="aiout"></div></section>
+<section id="computerUsePanel" class="panel ai" style="display:none">
+<div class="panelhead"><div><h2>Computer Use — браузерный исполнитель</h2><span class="muted">Изолированный браузер · подтверждённые адреса · скриншоты выполнения</span></div><span class="pill">Owner / Admin</span></div>
+<textarea id="computerUseTask" placeholder="Например: открой разрешённую локальную тестовую страницу, проверь заголовок и покажи скриншот. Не отправляй формы и не меняй данные."></textarea>
+<div class="row"><button class="btn fit" id="runComputerUse">Запустить задачу</button><span class="muted">Внешние действия, отправка данных и необратимые операции требуют отдельного подтверждения.</span></div>
+<div id="computerUseStatus" class="muted" style="margin-top:12px">Исполнитель отключён, пока не настроен изолированный runtime.</div>
+<pre id="computerUseResult" class="aiout" style="display:none"></pre>
+<div id="computerUseScreenshots" class="three" style="margin-top:12px"></div>
+</section>
 <section class="three"><div class="panel"><h2>AI для ремонта</h2><p class="muted">Подготовка диагностических вопросов и вариантов работ.</p></div><div class="panel"><h2>AI для продаж</h2><p class="muted">Черновики сообщений, офферов и follow-up.</p></div><div class="panel"><h2>AI для владельца</h2><p class="muted">Сводка рисков и точек внимания по введённым данным.</p></div></section>
 </div>
 
@@ -118,12 +126,12 @@ async function init(){
   sb.auth.onAuthStateChange(async(_e,session)=>session?showApp(session.user):showAuth());
   $("login").onclick=()=>auth(false);$("signup").onclick=()=>auth(true);$("signout").onclick=()=>sb.auth.signOut();
   $("refresh").onclick=loadAll;$("createClient").onclick=createClientRow;$("createRepair").onclick=createRepairRow;$("addAttachment").onclick=addAttachment;
-  $("askAI").onclick=askAI;$("createPayment").onclick=createPayment;$("clientSearch").oninput=renderClients;$("repairSearch").oninput=renderRepairs;
+  $("askAI").onclick=askAI;$("runComputerUse").onclick=runComputerUse;$("createPayment").onclick=createPayment;$("clientSearch").oninput=renderClients;$("repairSearch").oninput=renderRepairs;
   document.querySelectorAll(".nav").forEach(b=>b.onclick=()=>go(b.dataset.view));document.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>go(b.dataset.go));
 }
 async function auth(signup){const email=$("email").value.trim(),password=$("password").value;if(!email||password.length<8)return notice("Введите email и пароль от 8 символов.","err");const r=signup?await sb.auth.signUp({email,password}):await sb.auth.signInWithPassword({email,password});if(r.error)return notice(r.error.message,"err")}
 function showAuth(){$("auth").style.display="block";$("shell").style.display="none"}
-async function showApp(u){try{const s=await sb.auth.getSession(),token=s.data.session?.access_token;if(!token)return showAuth();const r=await fetch("/app/session",{headers:{Authorization:"Bearer "+token}});if(!r.ok)throw Error("Сервер не подтвердил авторизацию.");const v=await r.json(),role=v.user?.role;if(!["owner","admin","employee"].includes(role))throw Error("Недостаточно прав.");user=u;$("auth").style.display="none";$("shell").style.display="grid";$("avatar").textContent=(u.email||"M")[0].toUpperCase();await loadAll();}catch(e){await sb.auth.signOut();showAuth();notice(e.message,"err")}}
+async function showApp(u){try{const s=await sb.auth.getSession(),token=s.data.session?.access_token;if(!token)return showAuth();const r=await fetch("/app/session",{headers:{Authorization:"Bearer "+token}});if(!r.ok)throw Error("Сервер не подтвердил авторизацию.");const v=await r.json(),role=v.user?.role;if(!["owner","admin","employee"].includes(role))throw Error("Недостаточно прав.");user={...u,appRole:role};$("computerUsePanel").style.display=["owner","admin"].includes(role)?"block":"none";$("auth").style.display="none";$("shell").style.display="grid";$("avatar").textContent=(u.email||"M")[0].toUpperCase();await loadAll();}catch(e){await sb.auth.signOut();showAuth();notice(e.message,"err")}}
 function go(v){const map={dashboard:"dash",repairs:"repairsView",clients:"clientsView",ai:"aiView",admin:"adminView"};document.querySelectorAll(".view").forEach(x=>x.classList.remove("active"));$(map[v]).classList.add("active");document.querySelectorAll(".nav").forEach(x=>x.classList.toggle("active",x.dataset.view===v));$("title").textContent={dashboard:"Обзор",repairs:"Ремонты",clients:"Клиенты",ai:"AI Copilot",admin:"Контроль"}[v]}
 async function loadAll(){const [c,r,h]=await Promise.all([sb.from("clients").select("*").order("created_at",{ascending:false}),sb.from("repairs").select("*,clients(full_name),repair_items(*)").order("created_at",{ascending:false}),fetch("/api/v1/platform/health",{headers:{Authorization:"Bearer "+(await sb.auth.getSession()).data.session.access_token}})]);if(c.error||r.error)return;clients=c.data||[];repairs=r.data||[];renderClients();renderSelects();renderRepairs();const now=Date.now(),three=now+259200000;const active=repairs.filter(x=>!["issued","cancelled"].includes(x.status));$("mClients").textContent=clients.length;$("mRepairs").textContent=active.length;$("mOverdue").textContent=active.filter(x=>x.due_at&&new Date(x.due_at).getTime()<now).length;$("mDueSoon").textContent=active.filter(x=>x.due_at&&new Date(x.due_at).getTime()>=now&&new Date(x.due_at).getTime()<=three).length;renderPriority();try{$("health").textContent=JSON.stringify(await h.json(),null,2)}catch{}}
 function renderPriority(){const a=repairs.filter(x=>x.due_at).sort((x,y)=>new Date(x.due_at)-new Date(y.due_at)).slice(0,5);$("priority").innerHTML=a.length?a.map(x=>{const i=(x.repair_items||[])[0];return "<div class='row' style='padding:10px 0;border-bottom:1px solid var(--line)'><div><b>"+esc(x.clients?.full_name||"—")+"</b><div class='muted'>"+esc(i?.description||"—")+"</div></div><span class='pill'>"+new Date(x.due_at).toLocaleDateString("ru-RU")+"</span></div>"}).join(""):"<p class='muted'>Нет активных приоритетов.</p>"}
@@ -136,6 +144,34 @@ async function changeStatus(id,status){const old=repairs.find(x=>x.id===id);cons
 async function writeAudit(entity_id,entity_type="repair",action="view",before_data=null,after_data=null){await sb.from("audit_log").insert({actor_id:user.id,action,entity_type,entity_id,before_data,after_data})}
 async function addAttachment(){const repair_id=$("attachmentRepair").value,path=$("storagePath").value.trim();if(!repair_id||!path)return alert("Ремонт и storage path обязательны");const r=await sb.from("attachments").insert({entity_type:"repair",entity_id:repair_id,storage_path:path,file_name:$("fileName").value.trim()||null,mime_type:$("mimeType").value.trim()||null,created_by:user.id});if(r.error)return alert(r.error.message);await writeAudit(repair_id,"attachment","reference_create",null,{storage_path:path});alert("Ссылка сохранена")}
 async function askAI(){const prompt=$("aiPrompt").value.trim();if(!prompt)return;const s=await sb.auth.getSession();const r=await fetch("/api/v1/ai/advise",{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+s.data.session.access_token},body:JSON.stringify({prompt})});const data=await r.json();$("aiOut").style.display="block";$("aiOut").textContent=data.text||data.detail||"AI не вернул ответ."}
+async function runComputerUse(){
+ const task=$("computerUseTask").value.trim();if(!task)return;
+ const button=$("runComputerUse");button.disabled=true;
+ $("computerUseStatus").textContent="Выполняется изолированная задача…";
+ $("computerUseResult").style.display="none";$("computerUseScreenshots").replaceChildren();
+ try{
+  const session=await sb.auth.getSession(),token=session.data.session?.access_token;
+  if(!token)throw Error("Сессия авторизации истекла.");
+  const response=await fetch("/api/v1/computer-use/run",{
+   method:"POST",
+   headers:{"Content-Type":"application/json",Authorization:"Bearer "+token},
+   body:JSON.stringify({task,max_turns:8})
+  });
+  const data=await response.json();
+  if(!response.ok)throw Error(data.detail||"Computer Use не выполнен.");
+  $("computerUseResult").style.display="block";
+  $("computerUseResult").textContent=data.final_text||"Нет текстового результата.";
+  const images=Array.isArray(data.screenshots)?data.screenshots:[];
+  for(const src of images.slice(-4)){
+   if(typeof src!=="string"||!/^data:image\/(png|jpeg);base64,/.test(src))continue;
+   const img=document.createElement("img");img.src=src;img.alt="Скриншот Computer Use";
+   img.style.width="100%";img.style.border="1px solid var(--line)";img.style.borderRadius="12px";
+   $("computerUseScreenshots").append(img);
+  }
+  $("computerUseStatus").textContent="Завершено. Шагов модели: "+data.turns+"; вызовов исполнителя: "+data.tool_calls+".";
+ }catch(error){$("computerUseStatus").textContent=error.message}
+ finally{button.disabled=false}
+}
 let paymentIdempotencyKey=null;
 async function createPayment(){const rub=Number($("payAmount").value);if(!rub||rub<=0)return;paymentIdempotencyKey??=crypto.randomUUID();const s=await sb.auth.getSession();const r=await fetch("/api/v1/payments/create",{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+s.data.session.access_token,"Idempotency-Key":paymentIdempotencyKey},body:JSON.stringify({amount_minor:Math.round(rub*100),currency:"RUB",description:$("payDescription").value||"MARSEL",return_url:location.href})});const d=await r.json();if(d.confirmation_url||d.status==="NOT_CONFIGURED"||d.status==="DISABLED")paymentIdempotencyKey=null;$("payOut").innerHTML=d.confirmation_url?"<a href='"+esc(d.confirmation_url)+"' target='_blank' rel='noopener'>Открыть checkout</a>":"Статус: "+esc(d.status)}
 init();
