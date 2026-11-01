@@ -53,3 +53,7 @@ def test_warehouse_error_summary_preserves_only_safe_api_error_fields():
         "message": "Warehouse endpoint not found",
         "success": False,
     }
+
+
+def test_warehouse_diagnostic_has_documented_api_auth_control_endpoint():
+    assert MODULE.CONTROL_PATH == "/v2/tasks"
