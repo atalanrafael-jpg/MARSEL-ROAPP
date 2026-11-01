@@ -25,6 +25,7 @@ Set these variables only in the server's secret/environment configuration:
 | `COMPUTER_USE_ALLOWED_ORIGINS` | JSON array of exact allowed origins | empty |
 | `COMPUTER_USE_RUNTIME_TIMEOUT_SECONDS` | Executor request timeout | `45` |
 | `COMPUTER_USE_MAX_TURNS` | Maximum Responses iterations | `8` |
+| `COMPUTER_USE_MAX_TOOL_CALLS` | Total function executions per task | `12` |
 | `COMPUTER_USE_MAX_CODE_CHARS` | Per-script limit | `20000` |
 | `COMPUTER_USE_MAX_OUTPUT_IMAGES` | Maximum screenshots per tool call and task | `4` |
 
