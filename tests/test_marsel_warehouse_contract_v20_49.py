@@ -34,3 +34,22 @@ def test_empty_but_complete_warehouse_collection_is_valid():
 def test_warehouse_diagnostic_is_read_only():
     assert MODULE.DOC.endswith("/reference/get-warehouses")
     assert "WRITE" not in MODULE.DOCUMENTED_PATH.upper()
+
+
+def test_warehouse_diagnostic_checks_documented_default_and_both_types():
+    assert MODULE.PROBE_QUERIES == (None, {"type": "product"}, {"type": "asset"})
+
+
+def test_warehouse_error_summary_preserves_only_safe_api_error_fields():
+    result = MODULE.summarize({
+        "url": "https://api.roapp.io/v2/warehouse/?type=product",
+        "http": 404,
+        "elapsed_s": 0.2,
+        "body": '{"code":"not_found","message":"Warehouse endpoint not found","success":false}',
+        "error": "HTTPError: HTTP Error 404: Not Found",
+    })
+    assert result["error_details"] == {
+        "code": "not_found",
+        "message": "Warehouse endpoint not found",
+        "success": False,
+    }
