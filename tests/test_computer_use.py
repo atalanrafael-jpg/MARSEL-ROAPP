@@ -176,3 +176,26 @@ def test_origin_entries_must_be_exact_origins():
 
     with pytest.raises(ComputerUseError, match="exact HTTP"):
         service.run_task("Open a page")
+
+
+def test_requested_turn_limit_is_capped_by_server_configuration():
+    config = configured_settings()
+    config.computer_use_max_turns = 1
+    openai = FakeOpenAI([
+        response("resp_1", [function_call()]),
+        response("resp_2", [], "should not be reached"),
+    ])
+    executions = []
+    service = ComputerUseService(
+        settings_obj=config,
+        openai_client=openai,
+        sandbox_executor=lambda *args: executions.append(args) or [
+            {"type": "input_text", "text": "ok"}
+        ],
+    )
+
+    with pytest.raises(ComputerUseError, match="turn limit"):
+        service.run_task("Run a bounded task.", max_turns=8)
+
+    assert executions == []
+    assert len(openai.responses.calls) == 1
