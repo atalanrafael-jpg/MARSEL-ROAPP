@@ -35,7 +35,7 @@ class Settings(BaseSettings):
     openai_ads_integration_source: str = "marsel_roapp"
     openai_ads_default_currency: str = "RUB"
     openai_ads_source_url: str = ""
-    openai_ads_timeout_seconds: float = 15
+    openai_ads_timeout_seconds: int = 15
 
     # Gmail read-only OAuth integration.
     # Credentials are supplied through environment variables; no secret is stored here.
@@ -56,13 +56,25 @@ class Settings(BaseSettings):
     openai_api_key: str = ""
     openai_model: str = "gpt-6-luna"
 
+    # OpenAI Responses API Computer Use. Disabled until a separately isolated
+    # runtime is configured, authenticated, and confirms enforcement of policy.
+    openai_computer_use_model: str = "gpt-6-astra"
+    computer_use_enabled: bool = False
+    computer_use_runtime_url: str = ""
+    computer_use_runtime_token: str = ""
+    computer_use_allowed_origins: list[str] = Field(default_factory=list)
+    computer_use_runtime_timeout_seconds: int = 45
+    computer_use_max_turns: int = 8
+    computer_use_max_code_chars: int = 20000
+    computer_use_max_output_images: int = 4
+
     # Premium payments; live charging is fail-closed by default.
     payment_provider: str = "yookassa"
     payment_shop_id: str = ""
     payment_secret_key: str = ""
     payment_return_url: str = ""
     payment_live_enabled: bool = False
-    payment_timeout_seconds: float = 20
+    payment_timeout_seconds: int = 20
 
     model_config = SettingsConfigDict(
         env_file=".env",
