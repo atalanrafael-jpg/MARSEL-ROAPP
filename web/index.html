@@ -7,8 +7,6 @@
 <meta name="description" content="MARSEL ROAPP — премиальная операционная платформа Ювелирной студии MARSEL.">
 <link rel="manifest" href="/app/manifest.json">
 <title>MARSEL ROAPP — Control Center</title>
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>MARSEL ROAPP — Owner</title>
 <script>
   window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
 </script>
@@ -47,17 +45,8 @@ label{display:block;color:var(--muted);font-size:12px;margin:10px 0}input,select
 <label>Email<input id="email" type="email" autocomplete="email"></label>
 <label>Пароль<input id="password" type="password" autocomplete="current-password"></label>
 <div class="row"><button class="btn" id="login">Войти</button><button class="btn secondary" id="signup">Регистрация</button></div>
-<div class="row"><button id="login">Войти</button><button id="signup" class="secondary">Создать аккаунт</button></div>
 <p class="muted">Доступ контролируется Supabase Auth + RLS. Не вводите сюда серверные ключи интеграции.</p>
-</section>
-<main id="app">
-<div class="grid">
-<div class="card">Клиенты<div class="metric" id="mClients">0</div></div>
-<div class="card">Ремонты<div class="metric" id="mRepairs">0</div></div>
-<div class="card">Просрочено<div class="metric" id="mOverdue">0</div></div>
-<div class="card">До срока ≤ 3 дн.<div class="metric" id="mDueSoon">0</div></div>
 </div>
-
 <div id="shell" class="shell" style="display:none">
 <aside class="side">
 <div class="brand"><div class="mark">M</div><div><b>MARSEL</b><small>ROAPP</small></div></div>
