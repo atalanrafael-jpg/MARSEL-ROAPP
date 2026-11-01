@@ -199,3 +199,24 @@ def test_requested_turn_limit_is_capped_by_server_configuration():
 
     assert executions == []
     assert len(openai.responses.calls) == 1
+
+
+def test_tool_call_count_is_bounded_before_any_script_executes():
+    config = configured_settings()
+    config.computer_use_max_tool_calls = 1
+    openai = FakeOpenAI([
+        response("resp_1", [function_call("call_1"), function_call("call_2")]),
+    ])
+    executions = []
+    service = ComputerUseService(
+        settings_obj=config,
+        openai_client=openai,
+        sandbox_executor=lambda *args: executions.append(args) or [
+            {"type": "input_text", "text": "ok"}
+        ],
+    )
+
+    with pytest.raises(ComputerUseError, match="tool-call limit"):
+        service.run_task("Run a bounded task.")
+
+    assert executions == []
