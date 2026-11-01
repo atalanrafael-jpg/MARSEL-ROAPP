@@ -232,7 +232,7 @@ class ComputerUseService:
 
         runtime_url, runtime_token, allowed_origins = self._preflight()
         configured_max = int(getattr(self.settings, "computer_use_max_turns", 8))
-        if max_turns is not None and (not isinstance(max_turns, int) or max_turns < 1):
+        if max_turns is not None and (isinstance(max_turns, bool) or not isinstance(max_turns, int) or max_turns < 1):
             raise ComputerUseError("max_turns must be a positive integer.")
         turn_limit = configured_max if max_turns is None else min(max_turns, configured_max)
         if configured_max < 1 or configured_max > 12:
