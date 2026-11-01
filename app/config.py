@@ -35,7 +35,7 @@ class Settings(BaseSettings):
     openai_ads_integration_source: str = "marsel_roapp"
     openai_ads_default_currency: str = "RUB"
     openai_ads_source_url: str = ""
-    openai_ads_timeout_seconds: int = 15
+    openai_ads_timeout_seconds: float = 15
 
     # Gmail read-only OAuth integration.
     # Credentials are supplied through environment variables; no secret is stored here.
@@ -74,7 +74,7 @@ class Settings(BaseSettings):
     payment_secret_key: str = ""
     payment_return_url: str = ""
     payment_live_enabled: bool = False
-    payment_timeout_seconds: int = 20
+    payment_timeout_seconds: float = 20
 
     model_config = SettingsConfigDict(
         env_file=".env",
