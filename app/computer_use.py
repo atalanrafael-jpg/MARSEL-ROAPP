@@ -163,7 +163,7 @@ class ComputerUseService:
         *,
         settings_obj: Any = None,
         openai_client: Any = None,
-        sandbox_executor: Callable[[str, str, dict[str, Any]], list[dict[str, str]]] | None = None,
+        sandbox_executor: Callable[[str, str, dict[str, Any]], Any] | None = None,
     ) -> None:
         self.settings = settings_obj or settings
         self.openai_client = openai_client
@@ -191,8 +191,14 @@ class ComputerUseService:
         runtime_token: str,
         policy: dict[str, Any],
     ) -> list[dict[str, str]]:
+        max_images = int(getattr(self.settings, "computer_use_max_output_images", 4))
         if self.sandbox_executor is not None:
-            return self.sandbox_executor(session_id, code, policy)
+            # Injected/test executors must satisfy the same trust contract as the
+            # real runtime. Never manufacture a policy acknowledgement here.
+            return normalize_executor_payload(
+                self.sandbox_executor(session_id, code, policy),
+                max_images=max_images,
+            )
 
         timeout = float(getattr(self.settings, "computer_use_runtime_timeout_seconds", 45))
         payload = {
@@ -224,10 +230,7 @@ class ComputerUseService:
         except (httpx.HTTPError, ValueError) as exc:
             raise ComputerUseError("Computer-use runtime request failed.") from exc
 
-        return normalize_executor_payload(
-            result,
-            max_images=int(getattr(self.settings, "computer_use_max_output_images", 4)),
-        )
+        return normalize_executor_payload(result, max_images=max_images)
 
     def run_task(self, task: str, *, max_turns: int | None = None) -> dict[str, Any]:
         prompt = task.strip() if isinstance(task, str) else ""
@@ -333,11 +336,6 @@ class ComputerUseService:
                     runtime_url=runtime_url,
                     runtime_token=runtime_token,
                     policy=policy,
-                )
-                # Validate even injected executors; tests cannot bypass the contract.
-                observations = normalize_executor_payload(
-                    {"policy_enforced": True, "output": observations},
-                    max_images=int(getattr(self.settings, "computer_use_max_output_images", 4)),
                 )
                 new_screenshots = [
                     item["image_url"] for item in observations if item["type"] == "input_image"
