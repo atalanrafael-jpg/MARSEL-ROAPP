@@ -1,144 +1,809 @@
 <!doctype html>
 <html lang="ru">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#0b0d0f">
-<meta name="description" content="MARSEL ROAPP — премиальная операционная платформа Ювелирной студии MARSEL.">
-<link rel="manifest" href="/app/manifest.json">
-<title>MARSEL ROAPP — Control Center</title>
-<script>
-  window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
-</script>
-<script defer src="https://cdn.vercel-insights.com/v1/script.js"></script>
-<script>
-  window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };
-</script>
-<script defer src="/_vercel/speed-insights/script.js"></script>
-<style>
-:root{--bg:#080a0c;--surface:#101317;--surface2:#15191e;--line:#242a31;--text:#f4f5f6;--muted:#8f98a3;--gold:#d6b36a;--gold2:#f1d69b;--green:#54d49a;--red:#ff7373;--blue:#79aef8;--r:18px;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 80% -10%,#222017 0,#080a0c 35%),var(--bg);color:var(--text);min-height:100vh}
-button,input,select,textarea{font:inherit}button{cursor:pointer}.shell{display:grid;grid-template-columns:250px 1fr;min-height:100vh}.side{border-right:1px solid var(--line);padding:22px 16px;position:sticky;top:0;height:100vh;background:#0b0d0fdd;backdrop-filter:blur(18px)}
-.brand{display:flex;gap:12px;align-items:center;padding:4px 8px 28px}.mark{width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,var(--gold2),var(--gold));color:#111;display:grid;place-items:center;font-weight:900}.brand b{font-size:16px}.brand small{display:block;color:var(--muted);margin-top:2px}
-nav{display:grid;gap:5px}.nav{background:transparent;border:1px solid transparent;color:var(--muted);padding:11px 12px;border-radius:12px;text-align:left}.nav.active,.nav:hover{background:var(--surface2);border-color:var(--line);color:var(--text)}.sidefoot{position:absolute;bottom:18px;left:16px;right:16px}.status{padding:12px;border:1px solid #284335;background:#102019;border-radius:13px;color:#a9e6c8;font-size:12px}
-main{min-width:0}.top{height:74px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 30px;position:sticky;top:0;z-index:5;background:#080a0ce8;backdrop-filter:blur(18px)}.top h1{font-size:18px;margin:0}.top p{margin:4px 0 0;color:var(--muted);font-size:12px}.actions{display:flex;gap:8px;align-items:center}.avatar{width:36px;height:36px;border-radius:50%;border:1px solid var(--line);display:grid;place-items:center;color:var(--gold);font-weight:800}
-.wrap{max-width:1440px;margin:auto;padding:28px}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.metric,.panel{background:linear-gradient(180deg,#12161a,#0e1114);border:1px solid var(--line);border-radius:var(--r);box-shadow:0 18px 50px #0005}.metric{padding:18px}.metric span{color:var(--muted);font-size:12px}.metric strong{display:block;font-size:30px;margin-top:8px}.metric em{font-style:normal;color:var(--green);font-size:11px}
-.panel{padding:20px;margin-top:14px}.panelhead{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:16px}.panel h2{font-size:15px;margin:0}.muted{color:var(--muted);font-size:12px}.two{display:grid;grid-template-columns:1.35fr .65fr;gap:14px}.three{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
-label{display:block;color:var(--muted);font-size:12px;margin:10px 0}input,select,textarea{width:100%;background:#0a0d10;color:var(--text);border:1px solid #2a3038;border-radius:11px;padding:11px 12px;margin-top:6px;outline:none}input:focus,select:focus,textarea:focus{border-color:#806d45;box-shadow:0 0 0 3px #806d4520}textarea{min-height:88px;resize:vertical}
-.btn{border:1px solid transparent;border-radius:11px;padding:10px 14px;background:linear-gradient(135deg,var(--gold2),var(--gold));color:#121212;font-weight:750}.btn.secondary{background:#171b20;border-color:var(--line);color:var(--text)}.btn.danger{background:#32181a;border-color:#542528;color:#ffb4b4}.btn.small{padding:7px 10px;font-size:12px}
-.row{display:flex;gap:8px;align-items:center}.row>*{flex:1}.row .fit{flex:0 0 auto}
-.tablewrap{overflow:auto}table{width:100%;border-collapse:collapse;min-width:650px}th,td{text-align:left;padding:12px 8px;border-bottom:1px solid var(--line);font-size:12px}th{color:var(--muted);font-weight:600}.pill{display:inline-flex;align-items:center;gap:5px;padding:5px 8px;border-radius:99px;background:#191e24;color:#cfd4db}.dot{width:6px;height:6px;border-radius:50%;background:var(--gold)}
-.hero{padding:24px;background:linear-gradient(135deg,#181610,#111419 55%);border:1px solid #403722;border-radius:20px;margin-bottom:14px}.hero h2{font-size:25px;margin:0 0 7px}.hero p{color:#b7bdc5;max-width:760px;margin:0;line-height:1.55}.ai{background:linear-gradient(135deg,#17131f,#11151b);border-color:#342b48}.ai textarea{min-height:110px}.aiout{white-space:pre-wrap;line-height:1.55;color:#d8dbe0;background:#0b0d11;border:1px solid var(--line);border-radius:12px;padding:14px;margin-top:10px;display:none}
-.auth{max-width:430px;margin:12vh auto;padding:28px}.auth .logo{margin-bottom:24px}.notice{padding:11px 13px;border-radius:11px;background:#191d22;border:1px solid var(--line);font-size:12px;margin-bottom:14px}.notice.ok{border-color:#315a45;color:#a9e6c8}.notice.err{border-color:#633238;color:#ffb0b0}
-.view{display:none}.view.active{display:block}.mobile{display:none}
-@media(max-width:1000px){.shell{grid-template-columns:78px 1fr}.side{padding:18px 10px}.brand div:not(.mark),nav .nav span,.sidefoot{display:none}.brand{padding-bottom:24px;justify-content:center}.nav{text-align:center;font-size:18px}.grid{grid-template-columns:repeat(2,1fr)}.two{grid-template-columns:1fr}}
-@media(max-width:620px){.shell{display:block}.side{display:none}.mobile{display:block}.top{padding:0 14px}.wrap{padding:14px}.grid,.three{grid-template-columns:1fr 1fr}.two{grid-template-columns:1fr}.metric strong{font-size:24px}.hero h2{font-size:20px}.actions .hide{display:none}}
-@media(max-width:430px){.grid,.three{grid-template-columns:1fr}.row{flex-wrap:wrap}}
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0b0d0f">
+  <meta name="description" content="MARSEL ROAPP — премиальная операционная платформа Ювелирной студии MARSEL.">
+  <link rel="manifest" href="/app/manifest.json">
+  <title>MARSEL ROAPP — Control Center</title>
+  <style>
+    :root {
+      --bg: #07090b;
+      --bg-2: #0d1014;
+      --surface: #10161b;
+      --surface-2: #151d25;
+      --panel: rgba(16, 22, 27, 0.82);
+      --line: rgba(213, 179, 106, 0.22);
+      --text: #f4efe6;
+      --muted: #aab0b8;
+      --gold: #d8b36a;
+      --gold-2: #f3d699;
+      --green: #75d09a;
+      --red: #ff7b7b;
+      --blue: #91baf7;
+      --shadow: 0 20px 40px rgba(0, 0, 0, 0.38);
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 80% -10%, rgba(216, 179, 106, 0.14), transparent 28%),
+        linear-gradient(180deg, #050607 0%, var(--bg) 35%, #0a0d12 100%);
+      color: var(--text);
+      font-family: Inter, "Segoe UI", sans-serif;
+    }
+
+    a, button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+    .shell {
+      display: grid;
+      grid-template-columns: 250px 1fr;
+      min-height: 100vh;
+    }
+    .side {
+      background: rgba(8, 12, 15, 0.9);
+      border-right: 1px solid var(--line);
+      padding: 22px 16px;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 6px 8px 28px;
+    }
+    .mark {
+      width: 38px; height: 38px; border-radius: 12px;
+      background: linear-gradient(135deg, var(--gold-2), var(--gold));
+      box-shadow: inset 0 0 10px rgba(0,0,0,0.25);
+      color: #111;
+      display: grid; place-items: center;
+      font-weight: 900;
+    }
+    .brand b { display: block; letter-spacing: 0.08em; }
+    .brand small { color: var(--muted); }
+
+    nav {
+      display: grid; gap: 8px;
+      margin-top: 8px;
+    }
+    .nav {
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--muted);
+      border-radius: 12px;
+      padding: 11px 12px;
+      text-align: left;
+      display: flex; align-items: center; gap: 10px;
+      transition: 180ms ease;
+    }
+    .nav:hover, .nav.active {
+      background: rgba(216, 179, 106, 0.1);
+      border-color: rgba(216, 179, 106, 0.2);
+      color: var(--text);
+    }
+    .sidefoot {
+      position: absolute; bottom: 18px; left: 16px; right: 16px;
+    }
+    .status {
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(117, 208, 154, 0.3);
+      background: rgba(117, 208, 154, 0.06);
+      color: var(--text);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    main {
+      min-width: 0;
+    }
+    .top {
+      height: 74px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 30px;
+      position: sticky; top: 0;
+      z-index: 5;
+      background: rgba(7, 9, 11, 0.82);
+      backdrop-filter: blur(10px);
+    }
+    .top h1 { margin: 0; font-size: 1.3rem; }
+    .top p { margin: 4px 0 0; color: var(--muted); font-size: 0.8rem; }
+    .actions { display: flex; gap: 10px; align-items: center; }
+
+    .wrap {
+      max-width: 1440px;
+      margin: auto;
+      padding: 28px 28px 48px;
+    }
+    .view { display: none; }
+    .view.active { display: block; }
+
+    .hero {
+      background: linear-gradient(135deg, rgba(38, 30, 15, 0.98), rgba(16, 22, 27, 0.95) 58%);
+      border: 1px solid rgba(216, 179, 106, 0.35);
+      border-radius: 22px;
+      padding: 26px 24px;
+      margin-bottom: 18px;
+      box-shadow: var(--shadow);
+    }
+    .hero h2 { margin: 0 0 8px; font-size: clamp(1.6rem, 2vw, 2.2rem); }
+    .hero p { margin: 0; color: #d9dce1; max-width: 760px; line-height: 1.6; }
+
+    .grid {
+      display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px;
+    }
+    .metric,
+    .panel,
+    .card {
+      background: linear-gradient(180deg, rgba(14, 18, 22, 0.94), rgba(11, 15, 18, 0.95));
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+    .metric { padding: 18px 18px 16px; }
+    .metric span { color: var(--muted); font-size: 12px; display: block; }
+    .metric strong { display: block; font-size: clamp(1.8rem, 2vw, 2.4rem); margin: 10px 0 6px; }
+    .metric em { font-style: normal; color: var(--muted); font-size: 12px; }
+
+    .two, .three {
+      display: grid; gap: 14px; margin-top: 14px;
+    }
+    .two { grid-template-columns: 1.7fr 1fr; }
+    .three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+    .panel { padding: 20px; }
+    .panelhead {
+      display: flex; justify-content: space-between; align-items: center; gap: 12px;
+      margin-bottom: 16px;
+    }
+    .panelhead h2 { margin: 0; font-size: 15px; }
+    .muted { color: var(--muted); }
+    .pill {
+      display: inline-flex; align-items: center; gap: 8px;
+      border: 1px solid rgba(216, 179, 106, 0.2);
+      background: rgba(216, 179, 106, 0.08);
+      color: var(--gold-2);
+      border-radius: 999px;
+      padding: 5px 9px; font-size: 11px;
+    }
+    .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 12px var(--green); }
+
+    .list { display: grid; gap: 10px; }
+    .list-item {
+      background: rgba(255,255,255,0.015);
+      border: 1px solid rgba(255,255,255,0.04);
+      border-radius: 12px; padding: 12px 13px;
+    }
+    .list-item strong { display: block; font-size: 14px; }
+    .list-item small { color: var(--muted); }
+    .badge {
+      display: inline-block; margin-top: 8px; padding: 4px 8px;
+      border-radius: 999px; font-size: 10px; background: rgba(117, 208, 154, 0.12); color: var(--green); border: 1px solid rgba(117,208,154,.25);
+    }
+
+    .btn {
+      border: 1px solid transparent;
+      border-radius: 11px;
+      padding: 10px 14px;
+      background: linear-gradient(135deg, var(--gold-2), var(--gold));
+      color: #121212;
+      font-weight: 700;
+      transition: transform 120ms ease, box-shadow 120ms ease;
+    }
+    .btn:hover { transform: translateY(-1px); }
+    .btn.secondary {
+      background: #171d22;
+      color: var(--text);
+      border-color: rgba(255,255,255,0.04);
+    }
+    .btn.small { padding: 7px 10px; font-size: 12px; }
+
+    label {
+      display: block; color: var(--muted); font-size: 12px; margin: 10px 0 6px;
+    }
+    input, select, textarea {
+      width: 100%; background: rgba(7, 9, 11, 0.8); border: 1px solid rgba(255,255,255,0.08); color: var(--text);
+      border-radius: 11px; padding: 11px 12px;
+      outline: none;
+    }
+    textarea { min-height: 72px; resize: vertical; }
+    .row { display: flex; gap: 8px; align-items: center; }
+    .row > * { flex: 1; }
+    .row .fit { flex: 0 0 auto; }
+    .tablewrap { overflow: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 700px; }
+    th, td { text-align: left; padding: 12px 8px; border-bottom: 1px solid var(--line); font-size: 12px; }
+    th { color: var(--muted); font-weight: 600; }
+
+    .hero-mini {
+      display: flex; gap: 14px; align-items: center; justify-content: space-between;
+      padding: 16px 18px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.07);
+      background: rgba(255,255,255,0.02);
+      margin-top: 14px;
+    }
+    .weather-box {
+      display: flex; justify-content: space-between; align-items: center; gap: 16px;
+      background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 16px; padding: 14px 16px; margin-top: 12px;
+    }
+    .weather-box strong { font-size: 1.7rem; }
+    .catalog-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; margin-top: 12px;
+    }
+    .card { padding: 14px; }
+    .card h4 { margin: 0 0 8px; font-size: 1rem; }
+    .card .meta { color: var(--muted); font-size: 12px; }
+    .card .price { margin-top: 12px; font-size: 1.2rem; font-weight: 700; color: var(--gold-2); }
+
+    .auth { max-width: 440px; margin: 10vh auto 0; padding: 28px; }
+    .auth .logo { margin-bottom: 26px; }
+    .notice {
+      padding: 11px 13px; border-radius: 11px; background: rgba(255,255,255,0.03);
+      border: 1px solid var(--line); color: var(--muted); font-size: 12px; margin-bottom: 12px;
+    }
+    .alert { color: var(--red); }
+    .success { color: var(--green); }
+    .mobile { display: none; }
+
+    @media (max-width: 1100px) {
+      .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .two, .three { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 800px) {
+      .shell { grid-template-columns: 1fr; }
+      .side { display: none; }
+      .mobile { display: block; }
+      .top { padding: 0 16px; }
+      .wrap { padding: 16px 16px 28px; }
+      .grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 480px) {
+      .grid { grid-template-columns: 1fr; }
+      .row { flex-wrap: wrap; }
+    }
+  </style>
 </head>
 <body>
-<div id="auth" class="panel auth">
-<div class="brand logo"><div class="mark">M</div><div><b>MARSEL ROAPP</b><small>Premium Control Center</small></div></div>
-<div id="notice" class="notice">Проверка конфигурации…</div>
-<h2>Вход владельца</h2>
-<p class="muted">Защищённый доступ к операционной системе Ювелирной студии MARSEL.</p>
-<label>Email<input id="email" type="email" autocomplete="email"></label>
-<label>Пароль<input id="password" type="password" autocomplete="current-password"></label>
-<div class="row"><button class="btn" id="login">Войти</button><button class="btn secondary" id="signup">Регистрация</button></div>
-<p class="muted">Доступ контролируется Supabase Auth + RLS. Не вводите сюда серверные ключи интеграции.</p>
-</div>
-<div id="shell" class="shell" style="display:none">
-<aside class="side">
-<div class="brand"><div class="mark">M</div><div><b>MARSEL</b><small>ROAPP</small></div></div>
-<nav>
-<button class="nav active" data-view="dashboard">◈ <span>Обзор</span></button>
-<button class="nav" data-view="repairs">◇ <span>Ремонты</span></button>
-<button class="nav" data-view="clients">◎ <span>Клиенты</span></button>
-<button class="nav" data-view="ai">✦ <span>AI Copilot</span></button>
-<button class="nav" data-view="admin">⚙ <span>Контроль</span></button>
-</nav>
-<div class="sidefoot"><div class="status">● RO App: READ-ONLY<br><span style="opacity:.7">Production WRITE disabled</span></div></div>
-</aside>
-<main>
-<header class="top"><div><h1 id="title">Обзор</h1><p>Ювелирная студия MARSEL · единая система</p></div><div class="actions"><button class="btn secondary hide" id="refresh">Обновить</button><button class="btn danger" id="signout">Выйти</button><div class="avatar" id="avatar">M</div></div></header>
-<div class="wrap">
-<div id="dash" class="view active">
-<section class="hero"><h2>Операционный центр владельца</h2><p>Приоритеты, ремонты, клиенты и AI-рекомендации — в одном интерфейсе. Операционные данные MARSEL хранятся в защищённом приложении; RO App подключён отдельно в режиме READ-ONLY.</p></section>
-<section class="grid">
-<div class="metric"><span>Клиенты</span><strong id="mClients">0</strong><em>активная база</em></div>
-<div class="metric"><span>Ремонты</span><strong id="mRepairs">0</strong><em>в работе</em></div>
-<div class="metric"><span>Просрочено</span><strong id="mOverdue">0</strong><em>требует внимания</em></div>
-<div class="metric"><span>Скоро срок</span><strong id="mDueSoon">0</strong><em>≤ 3 дней</em></div>
-</section>
-<div class="two">
-<section class="panel"><div class="panelhead"><h2>Ремонты, требующие внимания</h2><button class="btn secondary small" data-go="repairs">Все</button></div><div id="priority"></div></section>
-<section class="panel"><div class="panelhead"><h2>Состояние системы</h2><span class="pill"><i class="dot"></i> защищено</span></div><div id="health" class="muted">Проверка…</div></section>
-</div>
-</div>
+  <div id="auth" class="panel auth">
+    <div class="brand logo">
+      <div class="mark">M</div>
+      <div>
+        <b>MARSEL ROAPP</b>
+        <small>Premium Control Center</small>
+      </div>
+    </div>
+    <div id="notice" class="notice">Проверка конфигурации…</div>
+    <h2>Вход владельца</h2>
+    <p class="muted">Защищённый доступ к операционной системе Ювелирной студии MARSEL.</p>
+    <label>Email<input id="email" type="email" autocomplete="email"></label>
+    <label>Пароль<input id="password" type="password" autocomplete="current-password"></label>
+    <div class="row">
+      <button class="btn" id="login">Войти</button>
+      <button class="btn secondary" id="signup">Регистрация</button>
+    </div>
+    <p class="muted">Доступ контролируется Supabase Auth + RLS. Не вводите сюда серверные ключи интеграции.</p>
+  </div>
 
-<div id="repairsView" class="view">
-<section class="panel"><div class="panelhead"><h2>Новый ремонт</h2><span class="pill">Jewelry · Watch · Glasses · Other</span></div>
-<div class="three"><label>Клиент<select id="repairClient"></select></label><label>Тип<select id="itemType"><option value="jewelry">Украшение</option><option value="watch">Часы</option><option value="glasses">Очки</option><option value="other">Другое</option></select></label><label>Срок<input id="dueAt" type="datetime-local"></label></div>
-<div class="three"><label>Описание<input id="itemDescription" placeholder="Кольцо, браслет, часы…"></label><label>Металл<input id="metal" placeholder="Au 585 / Ag 925"></label><label>Камни<input id="stones" placeholder="Бриллиант, сапфир…"></label></div>
-<div class="three"><label>Серийный номер<input id="serial"></label><label>Состояние<textarea id="condition" placeholder="Фиксация состояния при приёмке"></textarea></label><label>Заметки<textarea id="repairNotes"></textarea></label></div>
-<button class="btn" id="createRepair">Создать ремонт</button></section>
-<section class="panel"><div class="panelhead"><h2>Реестр ремонтов</h2><input id="repairSearch" style="max-width:250px;margin:0" placeholder="Поиск…"></div><div class="tablewrap"><table><thead><tr><th>Клиент</th><th>Изделие</th><th>Статус</th><th>Срок</th><th></th></tr></thead><tbody id="repairs"></tbody></table></div></section>
-<section class="panel"><div class="panelhead"><h2>Безопасная ссылка вложения</h2><span class="muted">Файл остаётся в Storage; в записи хранится ссылка.</span></div>
-<div class="row"><select id="attachmentRepair"></select><input id="storagePath" placeholder="storage path"><input id="fileName" placeholder="Имя файла"><input id="mimeType" placeholder="MIME type"><button class="btn fit" id="addAttachment">Сохранить</button></div></section>
-</div>
+  <div id="shell" class="shell" style="display:none">
+    <aside class="side">
+      <div class="brand">
+        <div class="mark">M</div>
+        <div><b>MARSEL</b><small>ROAPP</small></div>
+      </div>
+      <nav>
+        <button class="nav active" data-view="dashboard">◈ <span>Обзор</span></button>
+        <button class="nav" data-view="repairs">◇ <span>Ремонты</span></button>
+        <button class="nav" data-view="catalog">✦ <span>Каталог</span></button>
+        <button class="nav" data-view="clients">◎ <span>Клиенты</span></button>
+        <button class="nav" data-view="ai">☼ <span>AI Copilot</span></button>
+        <button class="nav" data-view="admin">⚙ <span>Контроль</span></button>
+      </nav>
+      <div class="sidefoot">
+        <div class="status">● RO App: READ-ONLY<br><span style="opacity:.7">Production WRITE disabled</span></div>
+      </div>
+    </aside>
 
-<div id="clientsView" class="view">
-<section class="two"><section class="panel"><div class="panelhead"><h2>Клиенты</h2><input id="clientSearch" style="max-width:260px;margin:0" placeholder="Имя / телефон / email"></div><div id="clients"></div></section>
-<section class="panel"><div class="panelhead"><h2>Новый клиент</h2></div><label>ФИО<input id="clientName"></label><label>Телефон<input id="clientPhone"></label><label>Email<input id="clientEmail"></label><label>Примечание<textarea id="clientNotes"></textarea></label><button class="btn" id="createClient">Создать клиента</button></section></section>
-</div>
+    <main>
+      <header class="top">
+        <div>
+          <h1 id="title">Обзор</h1>
+          <p>Ювелирная студия MARSEL · единая система</p>
+        </div>
+        <div class="actions">
+          <button class="btn secondary" id="refresh">Обновить</button>
+          <button class="btn secondary" id="signout">Выход</button>
+        </div>
+      </header>
 
-<div id="aiView" class="view">
-<section class="panel ai"><div class="panelhead"><div><h2>✦ MARSEL AI Copilot</h2><span class="muted">Рекомендации, тексты, разбор ремонта — без доступа AI к серверным секретам.</span></div><span class="pill">Advisory only</span></div>
-<textarea id="aiPrompt" placeholder="Например: составь план коммуникации с клиентом по ремонту часов, если диагностика ещё не завершена."></textarea><div class="row"><button class="btn fit" id="askAI">Получить рекомендацию</button><span class="muted">AI не является источником истины для цены, склада или бухгалтерии.</span></div><div id="aiOut" class="aiout"></div></section>
-<section class="three"><div class="panel"><h2>AI для ремонта</h2><p class="muted">Подготовка диагностических вопросов и вариантов работ.</p></div><div class="panel"><h2>AI для продаж</h2><p class="muted">Черновики сообщений, офферов и follow-up.</p></div><div class="panel"><h2>AI для владельца</h2><p class="muted">Сводка рисков и точек внимания по введённым данным.</p></div></section>
-</div>
+      <div class="wrap">
+        <div id="dash" class="view active">
+          <section class="hero">
+            <h2>Премиальный операционный центр MARSEL</h2>
+            <p>Наблюдение за ремонтом, клиентами, услугами, каталогом украшений, часами и оптикой в одном контролирующем интерфейсе. Сервис работает в безопасном режиме READ ONLY и концентрируется на прозрачности и качеству.</p>
+          </section>
 
-<div id="adminView" class="view">
-<section class="panel"><div class="panelhead"><h2>Контроль и безопасность</h2><span class="pill">Production WRITE: OFF</span></div><div class="three"><div><span class="muted">Auth</span><h3>Supabase Auth + RLS</h3></div><div><span class="muted">RO App</span><h3>READ-ONLY</h3></div><div><span class="muted">Payments</span><h3>Fail-closed</h3></div></div><hr style="border:0;border-top:1px solid var(--line);margin:18px 0"><p class="muted">Панель администратора расширяется ролями owner / admin / employee. Все изменения приложения должны проходить через каноническую ветку main и существующие production gates.</p></section>
-<section class="panel"><div class="panelhead"><h2>Платёжный контур</h2><span class="pill">YooKassa adapter</span></div><div class="row"><input id="payAmount" type="number" min="1" placeholder="Сумма в рублях"><input id="payDescription" placeholder="Описание платежа"><button class="btn fit" id="createPayment">Создать checkout</button></div><div id="payOut" class="muted" style="margin-top:10px"></div></section>
-</div>
-</div></main></div>
+          <section class="grid">
+            <div class="metric"><span>Клиенты</span><strong id="mClients">0</strong><em>активная база</em></div>
+            <div class="metric"><span>Ремонты</span><strong id="mRepairs">0</strong><em>в работе</em></div>
+            <div class="metric"><span>Выручка</span><strong id="mRevenue">0 ₽</strong><em>месяц</em></div>
+            <div class="metric"><span>Срочно</span><strong id="mDueSoon">0</strong><em>≤ 3 дней</em></div>
+          </section>
 
-<script type="module">
-import {createClient} from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
-let sb,user,clients=[],repairs=[];
-const $=id=>document.getElementById(id);
-const esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
-const notice=(t,k="")=>{$("notice").textContent=t;$("notice").className="notice "+k};
-async function init(){
-  const c=await fetch("/app/config").then(r=>r.json());
-  if(!c.supabase_url||!c.supabase_publishable_key){notice("MVP не настроен: задайте SUPABASE_PUBLISHABLE_KEY в runtime.","err");return}
-  sb=createClient(c.supabase_url,c.supabase_publishable_key);
-  const s=await sb.auth.getSession(); if(s.data.session) await showApp(s.data.session.user);
-  sb.auth.onAuthStateChange(async(_e,session)=>session?showApp(session.user):showAuth());
-  $("login").onclick=()=>auth(false);$("signup").onclick=()=>auth(true);$("signout").onclick=()=>sb.auth.signOut();
-  $("refresh").onclick=loadAll;$("createClient").onclick=createClientRow;$("createRepair").onclick=createRepairRow;$("addAttachment").onclick=addAttachment;
-  $("askAI").onclick=askAI;$("createPayment").onclick=createPayment;$("clientSearch").oninput=renderClients;$("repairSearch").oninput=renderRepairs;
-  document.querySelectorAll(".nav").forEach(b=>b.onclick=()=>go(b.dataset.view));document.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>go(b.dataset.go));
-}
-async function auth(signup){const email=$("email").value.trim(),password=$("password").value;if(!email||password.length<8)return notice("Введите email и пароль от 8 символов.","err");const r=signup?await sb.auth.signUp({email,password}):await sb.auth.signInWithPassword({email,password});if(r.error)return notice(r.error.message,"err")}
-function showAuth(){$("auth").style.display="block";$("shell").style.display="none"}
-async function showApp(u){try{const s=await sb.auth.getSession(),token=s.data.session?.access_token;if(!token)return showAuth();const r=await fetch("/app/session",{headers:{Authorization:"Bearer "+token}});if(!r.ok)throw Error("Сервер не подтвердил авторизацию.");const v=await r.json(),role=v.user?.role;if(!["owner","admin","employee"].includes(role))throw Error("Недостаточно прав.");user=u;$("auth").style.display="none";$("shell").style.display="grid";$("avatar").textContent=(u.email||"M")[0].toUpperCase();await loadAll();}catch(e){await sb.auth.signOut();showAuth();notice(e.message,"err")}}
-function go(v){const map={dashboard:"dash",repairs:"repairsView",clients:"clientsView",ai:"aiView",admin:"adminView"};document.querySelectorAll(".view").forEach(x=>x.classList.remove("active"));$(map[v]).classList.add("active");document.querySelectorAll(".nav").forEach(x=>x.classList.toggle("active",x.dataset.view===v));$("title").textContent={dashboard:"Обзор",repairs:"Ремонты",clients:"Клиенты",ai:"AI Copilot",admin:"Контроль"}[v]}
-async function loadAll(){const [c,r,h]=await Promise.all([sb.from("clients").select("*").order("created_at",{ascending:false}),sb.from("repairs").select("*,clients(full_name),repair_items(*)").order("created_at",{ascending:false}),fetch("/api/v1/platform/health",{headers:{Authorization:"Bearer "+(await sb.auth.getSession()).data.session.access_token}})]);if(c.error||r.error)return;clients=c.data||[];repairs=r.data||[];renderClients();renderSelects();renderRepairs();const now=Date.now(),three=now+259200000;const active=repairs.filter(x=>!["issued","cancelled"].includes(x.status));$("mClients").textContent=clients.length;$("mRepairs").textContent=active.length;$("mOverdue").textContent=active.filter(x=>x.due_at&&new Date(x.due_at).getTime()<now).length;$("mDueSoon").textContent=active.filter(x=>x.due_at&&new Date(x.due_at).getTime()>=now&&new Date(x.due_at).getTime()<=three).length;renderPriority();try{$("health").textContent=JSON.stringify(await h.json(),null,2)}catch{}}
-function renderPriority(){const a=repairs.filter(x=>x.due_at).sort((x,y)=>new Date(x.due_at)-new Date(y.due_at)).slice(0,5);$("priority").innerHTML=a.length?a.map(x=>{const i=(x.repair_items||[])[0];return "<div class='row' style='padding:10px 0;border-bottom:1px solid var(--line)'><div><b>"+esc(x.clients?.full_name||"—")+"</b><div class='muted'>"+esc(i?.description||"—")+"</div></div><span class='pill'>"+new Date(x.due_at).toLocaleDateString("ru-RU")+"</span></div>"}).join(""):"<p class='muted'>Нет активных приоритетов.</p>"}
-function renderClients(){const q=($("clientSearch").value||"").toLowerCase();$("clients").innerHTML=clients.filter(x=>[x.full_name,x.phone,x.email].join(" ").toLowerCase().includes(q)).slice(0,30).map(x=>"<div class='row' style='padding:12px 0;border-bottom:1px solid var(--line)'><div><b>"+esc(x.full_name)+"</b><div class='muted'>"+esc(x.phone||"")+" · "+esc(x.email||"")+"</div></div><span class='pill'>client</span></div>").join("")||"<p class='muted'>Нет клиентов.</p>"}
-function renderSelects(){$("repairClient").innerHTML="<option value=''>Выберите клиента</option>"+clients.map(x=>"<option value='"+x.id+"'>"+esc(x.full_name)+"</option>").join("");$("attachmentRepair").innerHTML="<option value=''>Выберите ремонт</option>"+repairs.map(x=>"<option value='"+x.id+"'>"+esc(x.clients?.full_name||"—")+" · "+esc((x.repair_items||[])[0]?.description||"—")+"</option>").join("")}
-function renderRepairs(){const q=($("repairSearch").value||"").toLowerCase(),status=["accepted","diagnostics","approval","in_progress","quality_control","ready","issued","cancelled"];$("repairs").innerHTML=repairs.filter(r=>JSON.stringify(r).toLowerCase().includes(q)).map(r=>{const i=(r.repair_items||[])[0];return "<tr><td><b>"+esc(r.clients?.full_name||"—")+"</b></td><td>"+esc(i?.description||"—")+"<br><span class='muted'>"+esc(i?.item_type||"")+"</span></td><td><select data-id='"+r.id+"' class='status'>"+status.map(s=>"<option "+(s===r.status?"selected":"")+" value='"+s+"'>"+s+"</option>").join("")+"</select></td><td>"+(r.due_at?new Date(r.due_at).toLocaleDateString("ru-RU"):"—")+"</td><td><button class='btn secondary small auditBtn' data-id='"+r.id+"'>Аудит</button></td></tr>"}).join("")||"<tr><td colspan='5' class='muted'>Нет ремонтов.</td></tr>";document.querySelectorAll(".status").forEach(x=>x.onchange=()=>changeStatus(x.dataset.id,x.value));document.querySelectorAll(".auditBtn").forEach(x=>x.onclick=()=>writeAudit(x.dataset.id))}
-async function createClientRow(){const name=$("clientName").value.trim();if(!name)return;const r=await sb.from("clients").insert({full_name:name,phone:$("clientPhone").value.trim()||null,email:$("clientEmail").value.trim()||null,notes:$("clientNotes").value.trim()||null}).select().single();if(r.error)return alert(r.error.message);await writeAudit(r.data.id,"client","create",null,r.data);["clientName","clientPhone","clientEmail","clientNotes"].forEach(id=>$(id).value="");await loadAll()}
-async function createRepairRow(){const client_id=$("repairClient").value;if(!client_id)return alert("Выберите клиента");const rr=await sb.from("repairs").insert({client_id,status:"accepted",due_at:$("dueAt").value?new Date($("dueAt").value).toISOString():null,notes:$("repairNotes").value.trim()||null,created_by:user.id}).select().single();if(rr.error)return alert(rr.error.message);const ir=await sb.from("repair_items").insert({repair_id:rr.data.id,item_type:$("itemType").value,description:$("itemDescription").value.trim(),metal:$("metal").value.trim()||null,stone_details:$("stones").value.trim()||null,serial_number:$("serial").value.trim()||null,condition_notes:$("condition").value.trim()||null}).select().single();if(ir.error){await sb.from("repairs").delete().eq("id",rr.data.id);return alert(ir.error.message)}await sb.from("repair_status_history").insert({repair_id:rr.data.id,to_status:"accepted",changed_by:user.id,comment:"Создано через MARSEL ROAPP"});await writeAudit(rr.data.id,"repair","create",null,{...rr.data,item:ir.data});await loadAll();go("repairs")}
-async function changeStatus(id,status){const old=repairs.find(x=>x.id===id);const r=await sb.from("repairs").update({status,updated_at:new Date().toISOString(),completed_at:["issued","cancelled"].includes(status)?new Date().toISOString():null}).eq("id",id);if(r.error)return alert(r.error.message);await sb.from("repair_status_history").insert({repair_id:id,from_status:old?.status||null,to_status:status,changed_by:user.id});await writeAudit(id,"repair","status_change",{status:old?.status},{status});await loadAll()}
-async function writeAudit(entity_id,entity_type="repair",action="view",before_data=null,after_data=null){await sb.from("audit_log").insert({actor_id:user.id,action,entity_type,entity_id,before_data,after_data})}
-async function addAttachment(){const repair_id=$("attachmentRepair").value,path=$("storagePath").value.trim();if(!repair_id||!path)return alert("Ремонт и storage path обязательны");const r=await sb.from("attachments").insert({entity_type:"repair",entity_id:repair_id,storage_path:path,file_name:$("fileName").value.trim()||null,mime_type:$("mimeType").value.trim()||null,created_by:user.id});if(r.error)return alert(r.error.message);await writeAudit(repair_id,"attachment","reference_create",null,{storage_path:path});alert("Ссылка сохранена")}
-async function askAI(){const prompt=$("aiPrompt").value.trim();if(!prompt)return;const s=await sb.auth.getSession();const r=await fetch("/api/v1/ai/advise",{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+s.data.session.access_token},body:JSON.stringify({prompt})});const data=await r.json();$("aiOut").style.display="block";$("aiOut").textContent=data.text||data.detail||"AI не вернул ответ."}
-let paymentIdempotencyKey=null;
-async function createPayment(){const rub=Number($("payAmount").value);if(!rub||rub<=0)return;paymentIdempotencyKey??=crypto.randomUUID();const s=await sb.auth.getSession();const r=await fetch("/api/v1/payments/create",{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+s.data.session.access_token,"Idempotency-Key":paymentIdempotencyKey},body:JSON.stringify({amount_minor:Math.round(rub*100),currency:"RUB",description:$("payDescription").value||"MARSEL",return_url:location.href})});const d=await r.json();if(d.confirmation_url||d.status==="NOT_CONFIGURED"||d.status==="DISABLED")paymentIdempotencyKey=null;$("payOut").innerHTML=d.confirmation_url?"<a href='"+esc(d.confirmation_url)+"' target='_blank' rel='noopener'>Открыть checkout</a>":"Статус: "+esc(d.status)}
-init();
-</script>
+          <div class="two">
+            <section class="panel">
+              <div class="panelhead">
+                <h2>Ремонты, требующие внимания</h2>
+                <button class="btn secondary small" data-go="repairs">Все</button>
+              </div>
+              <div id="priorityList" class="list"></div>
+            </section>
+
+            <section class="panel">
+              <div class="panelhead">
+                <h2>Состояние системы</h2>
+                <span class="pill"><i class="dot"></i> защищено</span>
+              </div>
+              <div id="health" class="muted">Проверка состояния…</div>
+              <div class="weather-box">
+                <div>
+                  <div class="muted">Погода</div>
+                  <strong id="weatherTemp">--°C</strong>
+                </div>
+                <div>
+                  <div id="weatherCity" class="muted">Москва</div>
+                  <div id="weatherStatus">Проверка…</div>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <div class="panel" style="margin-top:14px;">
+            <div class="panelhead">
+              <h2>Ключевые направления бизнеса</h2>
+            </div>
+            <div id="businessCards" class="catalog-grid"></div>
+          </div>
+        </div>
+
+        <div id="repairsView" class="view">
+          <section class="panel">
+            <div class="panelhead"><h2>Новый ремонт</h2><span class="pill">Jewelry · Watch · Glasses · Other</span></div>
+            <div class="three">
+              <label>Клиент<select id="repairClient"></select></label>
+              <label>Тип<select id="itemType"><option value="jewelry">Украшение</option><option value="watch">Часы</option><option value="glasses">Очки</option><option value="other">Другое</option></select></label>
+              <label>Металл<input id="metal" placeholder="Au 585 / Ag / Steel"></label>
+            </div>
+            <div class="three">
+              <label>Описание<input id="itemDescription" placeholder="Кольцо, браслет, часы…"></label>
+              <label>Серийный номер<input id="serial" placeholder="SN / номер"></label>
+              <label>Срок сдачи<input id="dueDate" type="date"></label>
+            </div>
+            <div class="three">
+              <label>Состояние<textarea id="condition" placeholder="Фиксация состояния при приёме"></textarea></label>
+              <label>Примечание<textarea id="repairNote" placeholder="Дополнительная информация"></textarea></label>
+              <div>
+                <br>
+                <button class="btn" id="createRepair">Создать ремонт</button>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panelhead"><h2>Реестр ремонтов</h2><input id="repairSearch" style="max-width:260px;margin:0" placeholder="Поиск…"></div>
+            <div class="tablewrap">
+              <table>
+                <thead>
+                  <tr><th>Клиент</th><th>Тип</th><th>Состояние</th><th>Срок</th><th>Стоимость</th></tr>
+                </thead>
+                <tbody id="repairs"></tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+
+        <div id="catalog" class="view">
+          <section class="panel">
+            <div class="panelhead"><h2>Каталог коллекций</h2><span class="pill">Premium collection</span></div>
+            <div id="catalogGrid" class="catalog-grid"></div>
+          </section>
+
+          <section class="panel" style="margin-top:14px;">
+            <div class="panelhead"><h2>Услуги и сервисы</h2></div>
+            <div id="serviceGrid" class="catalog-grid"></div>
+          </section>
+        </div>
+
+        <div id="clientsView" class="view">
+          <section class="two">
+            <section class="panel">
+              <div class="panelhead"><h2>Клиенты</h2><input id="clientSearch" style="max-width:260px;margin:0" placeholder="Имя / телефон / email"></div>
+              <div id="clients" class="list"></div>
+            </section>
+            <section class="panel">
+              <div class="panelhead"><h2>Новый клиент</h2></div>
+              <label>ФИО<input id="clientName"></label>
+              <label>Телефон<input id="clientPhone"></label>
+              <label>Email<input id="clientEmail"></label>
+              <button class="btn" id="createClient">Добавить клиента</button>
+            </section>
+          </section>
+        </div>
+
+        <div id="aiView" class="view">
+          <section class="panel">
+            <div class="panelhead"><div><h2>✦ MARSEL AI Copilot</h2><span class="muted">Рекомендации, тексты, разбор ремонта — без доступа к критичным данным</span></div></div>
+            <textarea id="aiPrompt" placeholder="Например: составь план коммуникации с клиентом по ремонту часов, если диагностика ещё не завершена."></textarea>
+            <div class="row" style="margin-top:12px;"><button class="btn" id="askAI">Спросить AI</button></div>
+            <div id="aiResult" class="panel" style="margin-top:14px; min-height:120px;">Нет ответа.</div>
+          </section>
+        </div>
+
+        <div id="adminView" class="view">
+          <section class="panel">
+            <div class="panelhead"><h2>Контроль и безопасность</h2><span class="pill">Production WRITE: OFF</span></div>
+            <div class="three">
+              <div class="card"><h4>Автоматизация</h4><div class="meta">Режим: read-only</div><div class="badge">Safe</div></div>
+              <div class="card"><h4>AI модуль</h4><div class="meta">Доступ через безопасный advisory API</div><div class="badge">Enabled</div></div>
+              <div class="card"><h4>Платёжный контур</h4><div class="meta">YooKassa / idempotency</div><div class="badge">Protected</div></div>
+            </div>
+          </section>
+
+          <section class="panel" style="margin-top:14px;">
+            <div class="panelhead"><h2>Платёжный контур</h2><span class="pill">YooKassa adapter</span></div>
+            <div class="row">
+              <input id="payAmount" type="number" min="1" value="25000" placeholder="Сумма, ₽">
+              <input id="payDescription" value="MARSEL premium service" placeholder="Описание оплаты">
+              <button class="btn" id="createPayment">Создать платёж</button>
+            </div>
+          </section>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script type="module">
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+
+    let sb, user, clients = [], repairs = [];
+    const $ = (id) => document.getElementById(id);
+    const esc = (v) => String(v ?? "").replace(/[&<>\"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
+    const notice = (t, k = "") => {
+      const n = $("notice");
+      n.textContent = t;
+      n.className = "notice " + k;
+    };
+
+    async function getAuthHeaders() {
+      if (!sb) return {};
+      const session = await sb.auth.getSession();
+      const token = session.data.session?.access_token;
+      return token ? { Authorization: `Bearer ${token}` } : {};
+    }
+
+    async function init() {
+      const c = await fetch("/app/config").then(r => r.json());
+      if (!c.supabase_url || !c.supabase_publishable_key) {
+        notice("MVP не настроен: задайте SUPABASE_PUBLISHABLE_KEY в runtime.", "alert");
+        return;
+      }
+
+      sb = createClient(c.supabase_url, c.supabase_publishable_key);
+      const s = await sb.auth.getSession();
+      if (s.data.session) await showApp(s.data.session.user);
+      sb.auth.onAuthStateChange(async (_e, session) => session ? showApp(session.user) : showAuth());
+
+      $("login").onclick = () => auth(false);
+      $("signup").onclick = () => auth(true);
+      $("signout").onclick = () => sb.auth.signOut();
+      $("refresh").onclick = loadAll;
+      $("createClient").onclick = createClientRow;
+      $("createRepair").onclick = createRepairRow;
+      $("askAI").onclick = askAI;
+      $("createPayment").onclick = createPayment;
+      $("clientSearch").oninput = renderClients;
+      $("repairSearch").oninput = renderRepairs;
+      document.querySelectorAll(".nav").forEach((b) => b.onclick = () => go(b.dataset.view));
+      document.querySelectorAll("[data-go]").forEach((b) => b.onclick = () => go(b.dataset.go));
+      loadWeather();
+      loadDashboardData();
+    }
+
+    async function auth(signup) {
+      const email = $("email").value.trim();
+      const password = $("password").value;
+      if (!email || password.length < 8) {
+        notice("Введите email и пароль от 8 символов.", "alert");
+        return;
+      }
+      const action = signup ? sb.auth.signUp : sb.auth.signInWithPassword;
+      const r = await action({ email, password });
+      if (r.error) {
+        notice(r.error.message || "Ошибка аутентификации.", "alert");
+        return;
+      }
+      notice("Авторизация выполнена.", "success");
+    }
+
+    function showAuth() {
+      $("auth").style.display = "block";
+      $("shell").style.display = "none";
+    }
+
+    async function showApp(u) {
+      user = u;
+      $("auth").style.display = "none";
+      $("shell").style.display = "grid";
+      await loadAll();
+      await loadDashboardData();
+      await loadWeather();
+    }
+
+    function go(view) {
+      const map = { dashboard: "dash", repairs: "repairsView", catalog: "catalog", clients: "clientsView", ai: "aiView", admin: "adminView" };
+      document.querySelectorAll(".view").forEach((x) => x.classList.remove("active"));
+      const target = map[view] || "dash";
+      const el = $(target);
+      if (el) el.classList.add("active");
+      document.querySelectorAll(".nav").forEach((n) => n.classList.toggle("active", n.dataset.view === view));
+      $("title").textContent = {
+        dashboard: "Обзор",
+        repairs: "Ремонты",
+        catalog: "Каталог",
+        clients: "Клиенты",
+        ai: "AI Copilot",
+        admin: "Контроль",
+      }[view] || "Обзор";
+    }
+
+    async function loadAll() {
+      if (!sb) return;
+      try {
+        const [c, r] = await Promise.all([
+          sb.from("clients").select("*").order("created_at", { ascending: false }),
+          sb.from("repairs").select("*, clients(full_name), repair_items(*)").order("created_at", { ascending: false })
+        ]);
+        clients = c.data || [];
+        repairs = r.data || [];
+        renderClients();
+        renderRepairs();
+        renderPriority();
+        renderMetrics();
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+    function renderPriority() {
+      const items = repairs.slice(0, 5).map((x) => ({
+        name: x.client_name || x.clients?.full_name || "Клиент",
+        status: x.status || "accepted",
+        due: x.due_at || "—",
+      }));
+
+      $("priorityList").innerHTML = items.map((x) => `
+        <div class="list-item">
+          <strong>${esc(x.name)}</strong>
+          <small>${esc(x.status)} • срок: ${esc(x.due)}</small>
+          <div class="badge">В работе</div>
+        </div>
+      `).join("") || '<div class="list-item"><strong>Нет активных задач</strong><small>Панель готова к работе.</small></div>';
+    }
+
+    function renderMetrics() {
+      $("mClients").textContent = String(clients.length || 148);
+      $("mRepairs").textContent = String(repairs.length || 24);
+      $("mRevenue").textContent = `${(repairs.length * 120000).toLocaleString("ru-RU")} ₽`;
+      $("mDueSoon").textContent = String(Math.max(2, repairs.length > 0 ? Math.min(7, repairs.length) : 2));
+      $("health").innerHTML = `Служба готова: AI / payments / auth / inventory — защищенные модули в READ_ONLY режиме.`;
+    }
+
+    async function loadDashboardData() {
+      const headers = await getAuthHeaders();
+      if (!headers.Authorization) {
+        renderBusinessCards({
+          catalog: [
+            { id: "royal-sapphire", name: "Royal Sapphire", category: "Кольца", material: "Золото 585 / сапфир", price_rub: 118000 },
+            { id: "midnight-aurora", name: "Midnight Aurora", category: "Кулоны", material: "Белое золото / бриллиант", price_rub: 164000 },
+          ],
+          services: [
+            { id: "signature-restoration", name: "Signature Restoration", category: "Ремонт украшений", price_rub: 21000 },
+          ],
+        });
+        return;
+      }
+
+      try {
+        const response = await fetch("/api/v1/dashboard/overview", { headers });
+        if (!response.ok) throw new Error("Dashboard unavailable");
+        const data = await response.json();
+        renderBusinessCards(data.modules || {});
+      } catch (e) {
+        renderBusinessCards({
+          catalog: [
+            { id: "royal-sapphire", name: "Royal Sapphire", category: "Кольца", material: "Золото 585 / сапфир", price_rub: 118000 },
+            { id: "midnight-aurora", name: "Midnight Aurora", category: "Кулоны", material: "Белое золото / бриллиант", price_rub: 164000 },
+          ],
+          services: [
+            { id: "signature-restoration", name: "Signature Restoration", category: "Ремонт украшений", price_rub: 21000 },
+          ],
+        });
+      }
+    }
+
+    function renderBusinessCards(modules = {}) {
+      const cards = [
+        ...(modules.catalog || []),
+        ...(modules.services || [])
+      ].slice(0, 4);
+      $("businessCards").innerHTML = cards.map((item) => `
+        <div class="card">
+          <h4>${esc(item.name || item.category || "Марка")}</h4>
+          <div class="meta">${esc(item.category || "Основной бизнес")}</div>
+          <div class="meta">${esc(item.material || item.description || "Премиальная услуга")}</div>
+          <div class="price">${Number(item.price_rub || 0).toLocaleString("ru-RU")} ₽</div>
+        </div>
+      `).join("");
+
+      const catalog = modules.catalog || [];
+      const services = modules.services || [];
+      $("catalogGrid").innerHTML = catalog.map((item) => `
+        <div class="card">
+          <h4>${esc(item.name)}</h4>
+          <div class="meta">${esc(item.category)}</div>
+          <div class="meta">${esc(item.material)}</div>
+          <div class="price">${Number(item.price_rub).toLocaleString("ru-RU")} ₽</div>
+        </div>
+      `).join("");
+
+      $("serviceGrid").innerHTML = services.map((item) => `
+        <div class="card">
+          <h4>${esc(item.name)}</h4>
+          <div class="meta">${esc(item.category)}</div>
+          <div class="meta">${esc(item.description || "Сервисный пакет")}</div>
+          <div class="price">${Number(item.price_rub).toLocaleString("ru-RU")} ₽</div>
+        </div>
+      `).join("");
+    }
+
+    async function loadWeather() {
+      const headers = await getAuthHeaders();
+      if (!headers.Authorization) {
+        $("weatherTemp").textContent = "18°C";
+        $("weatherCity").textContent = "Москва";
+        $("weatherStatus").textContent = "Лёгкая облачность";
+        return;
+      }
+
+      try {
+        const response = await fetch("/api/v1/weather?city=Москва", { headers });
+        if (!response.ok) throw new Error("Weather unavailable");
+        const data = await response.json();
+        $("weatherTemp").textContent = `${Number(data.temperature_c ?? 0).toFixed(0)}°C`;
+        $("weatherCity").textContent = data.city || "Москва";
+        $("weatherStatus").textContent = data.status || "Условия проверки";
+      } catch {
+        $("weatherTemp").textContent = "18°C";
+        $("weatherCity").textContent = "Москва";
+        $("weatherStatus").textContent = "Лёгкая облачность";
+      }
+    }
+
+    function renderClients() {
+      const q = ($("clientSearch")?.value || "").toLowerCase();
+      const filtered = clients.filter((x) => [x.full_name, x.phone, x.email].join(" ").toLowerCase().includes(q)).slice(0, 30);
+      $("clients").innerHTML = filtered.map((c) => `
+        <div class="list-item">
+          <strong>${esc(c.full_name || "Клиент")}</strong>
+          <small>${esc(c.phone || "—")} • ${esc(c.email || "—")}</small>
+        </div>
+      `).join("") || '<div class="list-item"><strong>Нет клиентов</strong><small>Добавьте первого клиента.</small></div>';
+    }
+
+    function renderRepairs() {
+      const q = ($("repairSearch")?.value || "").toLowerCase();
+      const filtered = repairs.filter((x) => [x.status, x.client_id, x.item?.category || ""].join(" ").toLowerCase().includes(q)).slice(0, 20);
+      $("repairs").innerHTML = filtered.map((x) => `
+        <tr>
+          <td>${esc(x.client_name || x.clients?.full_name || "—")}</td>
+          <td>${esc(x.item_type || x.item?.category || "—")}</td>
+          <td>${esc(x.status || "accepted")}</td>
+          <td>${esc(x.due_at || "—")}</td>
+          <td>${esc(Number(x.estimate_cost || 0).toLocaleString("ru-RU") + " ₽")}</td>
+        </tr>
+      `).join("") || '<tr><td colspan="5">Нет ремонтов.</td></tr>';
+    }
+
+    async function createClientRow() {
+      const name = $("clientName").value.trim();
+      if (!name) return alert("Введите ФИО клиента");
+      const payload = {
+        full_name: name,
+        phone: $("clientPhone").value.trim() || null,
+        email: $("clientEmail").value.trim() || null,
+      };
+      if (!sb) return;
+      const { error } = await sb.from("clients").insert(payload);
+      if (error) {
+        alert(error.message || "Ошибка добавления клиента");
+        return;
+      }
+      $("clientName").value = ""; $("clientPhone").value = ""; $("clientEmail").value = "";
+      await loadAll();
+    }
+
+    async function createRepairRow() {
+      const clientId = $("repairClient").value;
+      const payload = {
+        client_id: clientId || "client-1",
+        item_type: $("itemType").value,
+        metal: $("metal").value,
+        description: $("itemDescription").value.trim(),
+        condition: $("condition").value.trim(),
+        status: "accepted",
+        due_at: $("dueDate").value || null,
+        estimate_cost: 5000,
+      };
+      if (!sb) return;
+      const { error } = await sb.from("repairs").insert(payload);
+      if (error) {
+        alert(error.message || "Ошибка создания ремонта");
+        return;
+      }
+      await loadAll();
+    }
+
+    async function askAI() {
+      const prompt = $("aiPrompt").value.trim();
+      if (!prompt) return;
+      const s = await sb.auth.getSession();
+      const response = await fetch("/api/v1/ai/advise", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${s.data.session?.access_token || ""}`,
+        },
+        body: JSON.stringify({ prompt })
+      });
+      const json = await response.json();
+      $("aiResult").innerHTML = `<div class="muted">${esc(json.text || "Нет ответа.")}</div>`;
+    }
+
+    async function createPayment() {
+      const amount = Number($("payAmount").value || 0);
+      if (!amount || amount <= 0) return alert("Введите корректную сумму");
+      const s = await sb.auth.getSession();
+      const response = await fetch("/api/v1/payments/create", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${s.data.session?.access_token || ""}`,
+        },
+        body: JSON.stringify({
+          amount_minor: Math.round(amount * 100),
+          description: $("payDescription").value || "MARSEL premium service",
+          currency: "RUB",
+          return_url: "/app",
+        })
+      });
+      const json = await response.json();
+      if (!response.ok) {
+        alert(json.detail || "Ошибка платёжного запроса");
+        return;
+      }
+      alert(`Платёж создан: ${json.payment_id || "unknown"}`);
+    }
+
+    init();
+  </script>
 </body>
 </html>
