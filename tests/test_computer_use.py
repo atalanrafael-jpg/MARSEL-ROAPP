@@ -66,7 +66,7 @@ def test_tool_loop_preserves_runtime_session_and_responses_state():
 
     def executor(session_id, code, policy):
         executions.append((session_id, code, policy))
-        return [{"type": "input_text", "text": "title=MARSEL ROAPP"}]
+        return {"policy_enforced": True, "output": [{"type": "input_text", "text": "title=MARSEL ROAPP"}]}
 
     service = ComputerUseService(
         settings_obj=configured_settings(),
@@ -153,7 +153,7 @@ def test_tool_loop_stops_after_configured_turn_limit():
     service = ComputerUseService(
         settings_obj=config,
         openai_client=openai,
-        sandbox_executor=lambda *_: [{"type": "input_text", "text": "ok"}],
+        sandbox_executor=lambda *_: {"policy_enforced": True, "output": [{"type": "input_text", "text": "ok"}]},
     )
 
     with pytest.raises(ComputerUseError, match="turn limit"):
@@ -189,9 +189,9 @@ def test_requested_turn_limit_is_capped_by_server_configuration():
     service = ComputerUseService(
         settings_obj=config,
         openai_client=openai,
-        sandbox_executor=lambda *args: executions.append(args) or [
+        sandbox_executor=lambda *args: executions.append(args) or {"policy_enforced": True, "output": [
             {"type": "input_text", "text": "ok"}
-        ],
+        ]},
     )
 
     with pytest.raises(ComputerUseError, match="turn limit"):
@@ -211,12 +211,32 @@ def test_tool_call_count_is_bounded_before_any_script_executes():
     service = ComputerUseService(
         settings_obj=config,
         openai_client=openai,
-        sandbox_executor=lambda *args: executions.append(args) or [
+        sandbox_executor=lambda *args: executions.append(args) or {"policy_enforced": True, "output": [
             {"type": "input_text", "text": "ok"}
-        ],
+        ]},
     )
 
     with pytest.raises(ComputerUseError, match="tool-call limit"):
         service.run_task("Run a bounded task.")
 
     assert executions == []
+
+
+def test_tool_loop_rejects_executor_without_policy_confirmation():
+    openai = FakeOpenAI([
+        response("resp_1", [function_call()]),
+        response("resp_2", [], "must not reach this response"),
+    ])
+    service = ComputerUseService(
+        settings_obj=configured_settings(),
+        openai_client=openai,
+        sandbox_executor=lambda *_: {
+            "policy_enforced": False,
+            "output": [{"type": "input_text", "text": "not isolated"}],
+        },
+    )
+
+    with pytest.raises(ComputerUseError, match="policy"):
+        service.run_task("Run a bounded local task.")
+
+    assert len(openai.responses.calls) == 1
