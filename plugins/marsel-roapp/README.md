@@ -1,4 +1,4 @@
-# MARSEL RO App Plugin
+# MARSEL ROAPP Plugin
 
 Read-only RO App inspection and data-quality workflows for Codex, with reusable Skill guidance for ChatGPT.
 

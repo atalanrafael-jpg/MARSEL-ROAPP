@@ -3,7 +3,7 @@
 The repository already contains code, audit engines, documentation, MCP, plugins, tests, and operational material. The goal is to make the logical architecture explicit without destructive bulk moves.
 
 ```text
-Ro-app/
+MARSEL-ROAPP/
 ├── 00_PROJECT_CONTROL/       # governance, registry, state, decisions, roadmap
 ├── 01_ARCHITECTURE/          # system architecture and contracts
 ├── 02_ROAPP/                 # RO App API/client/integration contracts
