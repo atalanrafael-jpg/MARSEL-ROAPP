@@ -162,6 +162,167 @@ def require_admin_user(user: dict = Depends(require_supabase_user)) -> dict:
     return user
 
 
+JEWELRY_COLLECTIONS = [
+    {
+        "id": "royal-sapphire",
+        "name": "Royal Sapphire",
+        "category": "Кольца",
+        "material": "Золото 585 / сапфир",
+        "price_rub": 118000,
+        "status": "Лидирующая коллекция",
+    },
+    {
+        "id": "midnight-aurora",
+        "name": "Midnight Aurora",
+        "category": "Кулоны",
+        "material": "Белое золото / бриллиант",
+        "price_rub": 164000,
+        "status": "Премиум",
+    },
+    {
+        "id": "precision-sport",
+        "name": "Precision Sport",
+        "category": "Часы",
+        "material": "Нержавеющая сталь",
+        "price_rub": 289000,
+        "status": "Эксклюзив",
+    },
+    {
+        "id": "luxe-optics",
+        "name": "Luxe Optics",
+        "category": "Очки",
+        "material": "Металл / оправа премиум",
+        "price_rub": 96000,
+        "status": "Новая коллекция",
+    },
+]
+
+SERVICE_PACKAGES = [
+    {
+        "id": "signature-restoration",
+        "name": "Signature Restoration",
+        "category": "Ремонт украшений",
+        "duration_days": 6,
+        "price_rub": 21000,
+        "description": "Диагностика, реставрация, полировка и финальный контроль качества.",
+    },
+    {
+        "id": "watch-precision",
+        "name": "Watch Precision",
+        "category": "Часы",
+        "duration_days": 8,
+        "price_rub": 26000,
+        "description": "Проверка механики, замена деталей, регулировка точности.",
+    },
+    {
+        "id": "optics-fit",
+        "name": "Optics Fit",
+        "category": "Очки",
+        "duration_days": 4,
+        "price_rub": 15000,
+        "description": "Подбор оправы, ремонт креплений и настройка под клиента.",
+    },
+]
+
+
+def _weather_status(code: int | None) -> str:
+    mapping = {
+        0: "Ясно",
+        1: "Преимущественно ясно",
+        2: "Переменная облачность",
+        3: "Пасмурно",
+        45: "Туман",
+        48: "Туман с изморозью",
+        51: "Лёгкая морось",
+        53: "Морось",
+        55: "Сильная морось",
+        56: "Лёд в мороси",
+        57: "Изморозь",
+        61: "Небольшой дождь",
+        63: "Дождь",
+        65: "Сильный дождь",
+        66: "Лёгкий дождь с заморозкой",
+        67: "Сильный дождь с заморозкой",
+        71: "Небольшой снег",
+        73: "Снег",
+        75: "Сильный снег",
+        77: "Снежные крупинки",
+        80: "Ливневые дожди",
+        81: "Сильные ливни",
+        82: "Очень сильные ливни",
+        85: "Лёгкий снегопад",
+        86: "Сильный снегопад",
+        95: "Гроза",
+        96: "Гроза с градом",
+        99: "Сильная гроза с градом",
+    }
+    return mapping.get(code, "Неблагоприятные условия")
+
+
+async def _fetch_weather(city: str | None, latitude: float | None, longitude: float | None) -> dict:
+    if latitude is not None and longitude is None:
+        raise HTTPException(status_code=400, detail="longitude is required when latitude is provided")
+    if longitude is not None and latitude is None:
+        raise HTTPException(status_code=400, detail="latitude is required when longitude is provided")
+
+    if latitude is None or longitude is None:
+        if not city or not city.strip():
+            raise HTTPException(status_code=400, detail="city is required when coordinates are not set")
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.get(
+                "https://geocoding-api.open-meteo.com/v1/search",
+                params={"name": city.strip(), "count": 1, "language": "ru", "format": "json"},
+            )
+        if response.status_code != 200:
+            raise HTTPException(status_code=502, detail="Weather geocoding service unavailable")
+        results = response.json().get("results") or []
+        if not results:
+            raise HTTPException(status_code=404, detail="Weather location not found")
+        location = results[0]
+        latitude = float(location["latitude"])
+        longitude = float(location["longitude"])
+        city_name = str(location.get("name") or city.strip())
+        country_name = str(location.get("country") or "")
+    else:
+        city_name = city.strip() if city and city.strip() else "Выбранная точка"
+        country_name = ""
+
+    params = {
+        "latitude": latitude,
+        "longitude": longitude,
+        "current": "temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m",
+        "timezone": "auto",
+        "forecast_days": 1,
+    }
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        response = await client.get("https://api.open-meteo.com/v1/forecast", params=params)
+
+    if response.status_code != 200:
+        raise HTTPException(status_code=502, detail="Weather forecast service unavailable")
+
+    payload = response.json()
+    current = payload.get("current") or {}
+    weather_code = current.get("weather_code")
+    temperature_c = current.get("temperature_2m")
+    humidity = current.get("relative_humidity_2m")
+    wind_kph = current.get("wind_speed_10m")
+    feels_like_c = current.get("apparent_temperature")
+
+    return {
+        "city": city_name,
+        "country": country_name,
+        "latitude": float(latitude),
+        "longitude": float(longitude),
+        "timezone": payload.get("timezone") or "auto",
+        "status": _weather_status(weather_code if isinstance(weather_code, int) else None),
+        "temperature_c": float(temperature_c) if temperature_c is not None else None,
+        "feels_like_c": float(feels_like_c) if feels_like_c is not None else None,
+        "relative_humidity_percent": int(humidity) if humidity is not None else None,
+        "wind_kph": float(wind_kph) if wind_kph is not None else None,
+        "updated_at": current.get("time"),
+    }
+
+
 @app.get("/api/v1/admin/overview")
 def admin_overview(user: dict = Depends(require_admin_user)):
     return {
@@ -195,6 +356,54 @@ def computer_use_run(
     except ComputerUseError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
     return result
+@app.get("/api/v1/dashboard/overview")
+def dashboard_overview(user: dict = Depends(require_supabase_user)):
+    del user
+    repairs = repair_service.list_repairs()
+    active_repairs = len(repairs)
+    ready_count = sum(1 for repair in repairs if str(repair.status).lower() in {"ready", "issued"})
+    overdue_count = sum(1 for repair in repairs if getattr(repair, "due_at", None) is not None)
+    return {
+        "metrics": {
+            "clients": 148,
+            "repairs_active": active_repairs,
+            "ready_to_issue": ready_count,
+            "overdue": overdue_count,
+            "monthly_revenue_rub": 1428000,
+            "avg_margin_percent": 41,
+        },
+        "modules": {
+            "catalog": JEWELRY_COLLECTIONS,
+            "services": SERVICE_PACKAGES,
+        },
+        "status": {
+            "operating_mode": "READ_ONLY",
+            "production_write": False,
+            "brand": "Ювелирная студия MARSEL",
+            "studio_type": "ювелирная, часовая, очковая",
+        },
+    }
+
+
+@app.get("/api/v1/catalog/collections")
+def catalog_collections():
+    return JEWELRY_COLLECTIONS
+
+
+@app.get("/api/v1/services")
+def service_catalog():
+    return SERVICE_PACKAGES
+
+
+@app.get("/api/v1/weather")
+async def weather(
+    city: str | None = Query(default=None, min_length=1, max_length=64),
+    latitude: float | None = Query(default=None, ge=-90, le=90),
+    longitude: float | None = Query(default=None, ge=-180, le=180),
+    user: dict = Depends(require_supabase_user),
+):
+    del user
+    return await _fetch_weather(city=city, latitude=latitude, longitude=longitude)
 
 
 @app.post("/api/v1/ai/advise", dependencies=[Depends(require_supabase_user)])
