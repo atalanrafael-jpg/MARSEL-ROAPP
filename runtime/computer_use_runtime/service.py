@@ -19,7 +19,7 @@ class Executor(Protocol):
 class ExecuteRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
     session_id: str = Field(min_length=36, max_length=36)
-    code: str = Field(min_length=1, max_length=20_000)
+    code: str = Field(min_length=1)
     policy: dict[str, Any]
 
 
