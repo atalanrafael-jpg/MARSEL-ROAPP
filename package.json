@@ -22,7 +22,8 @@
   },
   "homepage": "https://github.com/atalanrafael-jpg/MARSEL-ROAPP#readme",
   "dependencies": {
-    "@vercel/analytics": "^2.0.1"
+    "@vercel/analytics": "^2.0.1",
+    "@vercel/speed-insights": "^2.0.0"
   },
   "private": true
 }
