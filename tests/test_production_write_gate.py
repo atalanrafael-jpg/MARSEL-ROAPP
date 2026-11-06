@@ -41,6 +41,11 @@ from app.main import app, require_supabase_user
             {"full_name": "Test customer"},
             "app.main.customer_service.register_customer",
         ),
+        (
+            "/api/v1/payments/create",
+            {"amount_minor": 1000, "currency": "RUB"},
+            "app.main.payment_gateway.create_payment",
+        ),
     ],
 )
 def test_mutation_endpoints_fail_closed_when_production_write_is_disabled(
