@@ -44,8 +44,13 @@ def _normalize_origin(value: str) -> str:
         or parsed.fragment
     ):
         raise ComputerUseSandboxError("Allowed origins must be exact HTTP(S) origins.")
-    if parsed.scheme == "http" and host not in {"localhost", "127.0.0.1", "::1"}:
+    is_local = host in {"localhost", "127.0.0.1", "::1"}
+    if parsed.scheme == "http" and not is_local:
         raise ComputerUseSandboxError("Non-local allowed origins must use HTTPS.")
+    if not is_local and port not in {None, 443}:
+        raise ComputerUseSandboxError(
+            "External non-default ports are unsupported by the domain-scoped egress policy."
+        )
 
     default_port = 443 if parsed.scheme == "https" else 80
     suffix = f":{port}" if port and port != default_port else ""
