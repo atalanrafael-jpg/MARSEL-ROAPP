@@ -128,6 +128,7 @@ def test_sandbox_runtime_uploads_files_narrows_egress_and_starts_runtime(tmp_pat
 
     assert api.context.closed is True
     assert api.options["persistent"] is False
+    assert api.options["image"] == VercelSandboxRuntime.IMAGE
     assert api.options["ports"] == [8765]
     assert api.options["region"] == "fra1"
     assert any(path.endswith("computer_use_runtime/service.py") for path in box.fs.files)
