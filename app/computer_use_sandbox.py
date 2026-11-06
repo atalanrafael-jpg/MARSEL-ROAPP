@@ -60,6 +60,7 @@ class VercelSandboxRuntime:
     update succeeds. Exiting the open context destroys the disposable sandbox.
     """
 
+    IMAGE = "vercel/sandbox/universal:latest"
     PORT = 8765
     REMOTE_ROOT = "/vercel/sandbox/marsel-computer-use"
 
@@ -272,7 +273,7 @@ class VercelSandboxRuntime:
     def open(self, allowed_origins: list[str] | tuple[str, ...]) -> Iterator[SandboxConnection]:
         origins = self._normalize_origins(allowed_origins)
         policy, expected_mode, expected_hosts = self._network_policy(origins)
-        region = getattr(self.settings, "computer_use_sandbox_region", "fra1")
+        region = getattr(self.settings, "computer_use_sandbox_region", "") or None
         timeout = int(getattr(self.settings, "computer_use_sandbox_timeout_seconds", 600))
         if timeout < 60:
             raise ComputerUseSandboxError("Sandbox timeout must be at least 60 seconds.")
@@ -280,6 +281,7 @@ class VercelSandboxRuntime:
         # Context exit stops and destroys the disposable microVM.
         with self.session_factory():
             with self.sandbox_api.create_sandbox(
+                image=self.IMAGE,
                 ports=[self.PORT],
                 region=region,
                 execution_time_limit=timeout,
