@@ -128,17 +128,17 @@ class VercelSandboxRuntime:
                 normalized.append(origin)
         return tuple(normalized)
 
-    def _network_policy(self, origins: tuple[str, ...]) -> tuple[Any, str]:
-        hosts = {
+    def _network_policy(self, origins: tuple[str, ...]) -> tuple[Any, str, frozenset[str]]:
+        hosts = frozenset(
             parsed.hostname
             for origin in origins
             if (parsed := urlsplit(origin)).hostname
             and parsed.hostname not in {"localhost", "127.0.0.1", "::1"}
-        }
+        )
         if not hosts:
-            return self.network_policy_factory.deny_all(), "deny-all"
+            return self.network_policy_factory.deny_all(), "deny-all", hosts
         policy = self.network_policy_factory.custom(allow={host: () for host in sorted(hosts)})
-        return policy, "custom"
+        return policy, "custom", hosts
 
     def _upload_runtime(self, box: Any) -> None:
         package_dir = self.runtime_root / "computer_use_runtime"
@@ -191,7 +191,13 @@ class VercelSandboxRuntime:
             sudo=True,
         )
 
-    def _apply_network_policy(self, box: Any, policy: Any, expected_mode: str) -> None:
+    def _apply_network_policy(
+        self,
+        box: Any,
+        policy: Any,
+        expected_mode: str,
+        expected_hosts: frozenset[str],
+    ) -> None:
         # Current SDK update() persists the policy and applies it to the active
         # session. The deprecated helper remains a compatibility fallback.
         updater = getattr(box, "update", None)
@@ -201,8 +207,12 @@ class VercelSandboxRuntime:
             box.update_network_policy(policy)
 
         readback = getattr(box, "network_policy", None)
-        if readback is not None and getattr(readback, "mode", None) != expected_mode:
-            raise ComputerUseSandboxError("Vercel did not confirm the requested network policy.")
+        if readback is not None:
+            if getattr(readback, "mode", None) != expected_mode:
+                raise ComputerUseSandboxError("Vercel did not confirm the requested network policy.")
+            actual_hosts = frozenset(getattr(readback, "allowed_domains", ()) or ())
+            if actual_hosts != expected_hosts:
+                raise ComputerUseSandboxError("Vercel network-policy readback does not match the origin allowlist.")
 
     def _start_runtime(self, box: Any, token: str, origins: tuple[str, ...]) -> None:
         environment = {
@@ -254,7 +264,7 @@ class VercelSandboxRuntime:
     @contextmanager
     def open(self, allowed_origins: list[str] | tuple[str, ...]) -> Iterator[SandboxConnection]:
         origins = self._normalize_origins(allowed_origins)
-        policy, expected_mode = self._network_policy(origins)
+        policy, expected_mode, expected_hosts = self._network_policy(origins)
         region = getattr(self.settings, "computer_use_sandbox_region", "fra1")
         timeout = int(getattr(self.settings, "computer_use_sandbox_timeout_seconds", 600))
         if timeout < 60:
@@ -271,7 +281,7 @@ class VercelSandboxRuntime:
             ) as box:
                 self._upload_runtime(box)
                 self._install_runtime(box)
-                self._apply_network_policy(box, policy, expected_mode)
+                self._apply_network_policy(box, policy, expected_mode, expected_hosts)
 
                 token = token_urlsafe(32)
                 self._start_runtime(box, token, origins)
