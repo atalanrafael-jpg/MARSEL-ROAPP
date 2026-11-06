@@ -208,3 +208,25 @@ def test_official_vercel_sandbox_sdk_import_contract():
     assert callable(vercel_sandbox.create_sandbox)
     assert NetworkPolicy.custom(allow={"example.com": ()}).mode == "custom"
     assert NetworkPolicy.deny_all().mode == "deny-all"
+
+
+def test_sandbox_rejects_external_non_default_ports_before_creation(tmp_path):
+    box = FakeBox()
+    api = FakeSandboxAPI(box)
+    manager = VercelSandboxRuntime(
+        settings_obj=SimpleNamespace(
+            computer_use_sandbox_region="",
+            computer_use_sandbox_timeout_seconds=600,
+        ),
+        sandbox_api=api,
+        network_policy_factory=FakePolicy,
+        http_client_factory=lambda **kwargs: FakeHTTPClient(FakeResponse()),
+        runtime_root=tmp_path,
+        sleep=lambda _: None,
+    )
+
+    with pytest.raises(ComputerUseSandboxError, match="non-default ports"):
+        with manager.open(["https://example.com:8443"]):
+            pytest.fail("Unsupported external ports must be rejected before sandbox creation")
+
+    assert api.options is None
