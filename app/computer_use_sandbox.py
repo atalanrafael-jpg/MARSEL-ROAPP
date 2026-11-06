@@ -247,13 +247,20 @@ class VercelSandboxRuntime:
                 if (
                     getattr(response, "status_code", 0) == 200
                     and isinstance(payload, dict)
+                    and payload.get("network_policy_enforced") is not True
+                ):
+                    raise ComputerUseSandboxError(
+                        "Runtime health check failed: network policy is not enforced."
+                    )
+                if (
+                    getattr(response, "status_code", 0) == 200
+                    and isinstance(payload, dict)
                     and payload.get("status") == "ready"
-                    and payload.get("network_policy_enforced") is True
                 ):
                     return
-                last_error = ComputerUseSandboxError(
-                    "The runtime did not attest that its network policy is enforced."
-                )
+                last_error = ComputerUseSandboxError("Runtime health endpoint is not ready.")
+            except ComputerUseSandboxError:
+                raise
             except Exception as exc:
                 last_error = exc
             if attempt < attempts - 1:
