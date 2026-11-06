@@ -260,7 +260,9 @@ class ComputerUseService:
                         max_turns=max_turns,
                         runtime_url=connection.url,
                         runtime_token=connection.token,
-                        allowed_origins=allowed_origins,
+                        allowed_origins=list(
+                            getattr(connection, "allowed_origins", allowed_origins)
+                        ),
                     )
             except ComputerUseError:
                 raise
