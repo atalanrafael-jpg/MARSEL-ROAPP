@@ -118,7 +118,7 @@ def test_owner_app_write_handlers_check_the_server_write_policy():
         "addAttachment",
         "createPayment",
     ):
-        match = re.search(rf"async function {handler}\\([^)]*\\)\\{{([^}}]*)", html)
+        match = re.search(rf"async function {handler}\([^)]*\)\{{([^}}]*)", html)
         assert match, f"Missing browser write handler: {handler}"
         assert match.group(1).startswith("if(!ensureWriteEnabled())return;"), (
             f"{handler} must check the server write policy before doing any work"
