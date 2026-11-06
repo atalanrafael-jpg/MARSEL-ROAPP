@@ -245,9 +245,10 @@ def test_tool_loop_rejects_executor_without_policy_confirmation():
 
 
 class FakeSandboxRuntime:
-    def __init__(self):
+    def __init__(self, connection_origins=None):
         self.closed = False
         self.origins = None
+        self.connection_origins = connection_origins
 
     @contextmanager
     def open(self, allowed_origins):
@@ -256,6 +257,7 @@ class FakeSandboxRuntime:
             yield SimpleNamespace(
                 url="https://sandbox.example.test/execute",
                 token="ephemeral-runtime-token",
+                allowed_origins=tuple(self.connection_origins or allowed_origins),
             )
         finally:
             self.closed = True
@@ -351,3 +353,28 @@ def test_runtime_http_request_matches_strict_execute_schema(monkeypatch):
         "code": "log('ok')",
         "policy": {"allowed_origins": ["https://example.com"]},
     }
+
+
+def test_managed_sandbox_normalized_origins_are_used_by_runtime_policy():
+    config = configured_settings()
+    config.computer_use_allowed_origins = ["https://example.com:443"]
+    openai = FakeOpenAI([
+        response("resp_1", [function_call()]),
+        response("resp_2", [], "Task completed."),
+    ])
+    runtime = FakeSandboxRuntime(connection_origins=["https://example.com"])
+    service = ComputerUseService(
+        settings_obj=config,
+        openai_client=openai,
+        sandbox_runtime=runtime,
+    )
+    executions = []
+    service._execute_in_sandbox = lambda **kwargs: (
+        executions.append(kwargs)
+        or [{"type": "input_text", "text": "ok"}]
+    )
+
+    service.run_task("Read the page title.")
+
+    assert runtime.origins == ["https://example.com:443"]
+    assert executions[0]["policy"]["allowed_origins"] == ["https://example.com"]
