@@ -169,7 +169,6 @@ class VercelSandboxRuntime:
         return result
 
     def _install_runtime(self, box: Any) -> None:
-        self._run_checked(box, "uv", ["--version"])
         requirements_path = posixpath.join(self.REMOTE_ROOT, "requirements.txt")
         self._run_checked(
             box,
