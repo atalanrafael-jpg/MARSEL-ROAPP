@@ -35,6 +35,7 @@ class FakeBox:
         self.health_status = health_status
         self.processes = []
         self.policies = []
+        self.network_policy = None
 
     def run_process(self, command, args, **kwargs):
         self.processes.append((command, args, kwargs))
@@ -42,6 +43,10 @@ class FakeBox:
 
     def update_network_policy(self, policy):
         self.policies.append(policy)
+        self.network_policy = SimpleNamespace(
+            mode=policy["mode"],
+            allowed_domains=tuple(policy.get("allow", {}).keys()),
+        )
 
 
 class FakeSandboxContext:
