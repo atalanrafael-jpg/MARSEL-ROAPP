@@ -67,7 +67,12 @@ class PlaywrightExecutor:
         playwright = await async_playwright().start()
         browser = None
         try:
-            browser = await playwright.chromium.launch(headless=True)
+            browser = await playwright.chromium.launch(
+                headless=True,
+                chromium_sandbox=True,
+                env={},
+                args=["--disable-extensions", "--disable-file-system"],
+            )
             context = await browser.new_context(service_workers="block")
             page = await context.new_page()
             allowed = frozenset(allowed_origins)
@@ -79,8 +84,9 @@ class PlaywrightExecutor:
                 else:
                     await route.abort("blockedbyclient")
 
-            await page.route("**/*", guard_request)
-            namespace: dict[str, Any] = {"__builtins__": __builtins__, "page": page, "context": context, "browser": browser}
+            # Context-level routing covers popups and additional pages too.
+            await context.route("**/*", guard_request)
+            namespace: dict[str, Any] = {"__builtins__": __builtins__, "page": page}
             return BrowserSession(playwright, browser, context, page, allowed, namespace)
         except Exception:
             if browser is not None:
