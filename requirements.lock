@@ -6,6 +6,7 @@
 # Resolved dependency set; refreshed 2026-09-17 for MARSEL ROAPP control-agent consistency.
 # Production builds consume this file; direct Google and MCP dependencies are pinned here.
 # CI verification gate: confirm the full dependency graph before production release.
+# Updated 2026-11-06 for Vercel Sandbox Python SDK 0.11.0.
 PyJWT==2.13.0
 annotated-doc==0.0.5
 annotated-types==0.8.0
@@ -76,5 +77,9 @@ uritemplate==4.2.0
 urllib3==2.7.0
 uvicorn==0.52.4
 uvloop==0.22.1
+vercel-headers==0.7.2
+vercel-internal-core==0.2.2
+vercel-oidc==0.11.0
+vercel-sandbox==0.11.0
 watchfiles==1.2.0
 websockets==16.1.1
