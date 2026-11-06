@@ -132,8 +132,14 @@ def test_sandbox_runtime_uploads_files_narrows_egress_and_starts_runtime(tmp_pat
     assert api.options["ports"] == [8765]
     assert api.options["region"] == "fra1"
     assert any(path.endswith("computer_use_runtime/service.py") for path in box.fs.files)
-    assert any(command == "uv" for command, _, _ in box.processes)
-    assert any(command == "python" and "install" in args for command, args, _ in box.processes)
+    assert any(
+        command == "python" and "install" in args
+        for command, args, _ in box.processes
+    )
+    assert any(
+        command == "python" and "playwright" in args and "chromium" in args
+        for command, args, _ in box.processes
+    )
 
 
 def test_sandbox_runtime_fails_closed_when_network_policy_is_not_attested(tmp_path):
