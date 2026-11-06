@@ -1,6 +1,6 @@
 import asyncio
 import sys
-from types import ModuleType, SimpleNamespace
+from types import ModuleType
 
 from runtime.computer_use_runtime.playwright_executor import PlaywrightExecutor
 
