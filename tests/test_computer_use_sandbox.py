@@ -190,3 +190,14 @@ def test_sandbox_runtime_uses_deny_all_for_local_only_origins(tmp_path):
         pass
 
     assert box.policies[-1] == {"mode": "deny-all"}
+
+
+def test_official_vercel_sandbox_sdk_import_contract():
+    from vercel.api import session
+    from vercel.sandbox import NetworkPolicy
+    from vercel.sandbox import sync as vercel_sandbox
+
+    assert callable(session)
+    assert callable(vercel_sandbox.create_sandbox)
+    assert NetworkPolicy.custom(allow={"example.com": ()}).mode == "custom"
+    assert NetworkPolicy.deny_all().mode == "deny-all"
