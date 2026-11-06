@@ -1,3 +1,5 @@
+from contextlib import contextmanager
+
 import json
 from types import SimpleNamespace
 
@@ -240,3 +242,139 @@ def test_tool_loop_rejects_executor_without_policy_confirmation():
         service.run_task("Run a bounded local task.")
 
     assert len(openai.responses.calls) == 1
+
+
+class FakeSandboxRuntime:
+    def __init__(self, connection_origins=None):
+        self.closed = False
+        self.origins = None
+        self.connection_origins = connection_origins
+
+    @contextmanager
+    def open(self, allowed_origins):
+        self.origins = list(allowed_origins)
+        try:
+            yield SimpleNamespace(
+                url="https://sandbox.example.test/execute",
+                token="ephemeral-runtime-token",
+                allowed_origins=tuple(self.connection_origins or allowed_origins),
+            )
+        finally:
+            self.closed = True
+
+
+def test_computer_use_uses_one_disposable_sandbox_for_the_full_task():
+    openai = FakeOpenAI([
+        response("resp_1", [function_call()]),
+        response("resp_2", [], "Task completed."),
+    ])
+    runtime = FakeSandboxRuntime()
+    service = ComputerUseService(
+        settings_obj=configured_settings(),
+        openai_client=openai,
+        sandbox_runtime=runtime,
+    )
+    executions = []
+
+    def execute(**kwargs):
+        executions.append(kwargs)
+        return [{"type": "input_text", "text": "page title: MARSEL"}]
+
+    service._execute_in_sandbox = execute
+    result = service.run_task("Read the page title.")
+
+    assert result["final_text"] == "Task completed."
+    assert runtime.origins == ["http://127.0.0.1:8000"]
+    assert runtime.closed is True
+    assert len(executions) == 1
+    assert executions[0]["runtime_url"] == "https://sandbox.example.test/execute"
+    assert executions[0]["runtime_token"] == "ephemeral-runtime-token"
+    assert executions[0]["policy"]["filesystem_access"] == "sandbox_only"
+
+
+class FakeStreamResponse:
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        return False
+
+    def raise_for_status(self):
+        return None
+
+    def iter_bytes(self):
+        yield json.dumps({
+            "policy_enforced": True,
+            "output": [{"type": "input_text", "text": "ok"}],
+        }).encode()
+
+
+class FakeStreamingHTTPClient:
+    def __init__(self):
+        self.request = None
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        return False
+
+    def stream(self, method, url, *, headers, json):
+        self.request = {
+            "method": method,
+            "url": url,
+            "headers": headers,
+            "json": json,
+        }
+        return FakeStreamResponse()
+
+
+def test_runtime_http_request_matches_strict_execute_schema(monkeypatch):
+    from app import computer_use
+
+    http_client = FakeStreamingHTTPClient()
+    monkeypatch.setattr(computer_use.httpx, "Client", lambda **kwargs: http_client)
+    service = ComputerUseService(settings_obj=configured_settings())
+
+    output = service._execute_in_sandbox(
+        session_id="00000000-0000-4000-8000-000000000001",
+        code="log('ok')",
+        runtime_url="https://sandbox.example.test/execute",
+        runtime_token="runtime-token",
+        policy={"allowed_origins": ["https://example.com"]},
+    )
+
+    assert output == [{"type": "input_text", "text": "ok"}]
+    assert http_client.request["method"] == "POST"
+    assert http_client.request["url"] == "https://sandbox.example.test/execute"
+    assert http_client.request["headers"]["Authorization"] == "Bearer runtime-token"
+    assert http_client.request["json"] == {
+        "session_id": "00000000-0000-4000-8000-000000000001",
+        "code": "log('ok')",
+        "policy": {"allowed_origins": ["https://example.com"]},
+    }
+
+
+def test_managed_sandbox_normalized_origins_are_used_by_runtime_policy():
+    config = configured_settings()
+    config.computer_use_allowed_origins = ["https://example.com:443"]
+    openai = FakeOpenAI([
+        response("resp_1", [function_call()]),
+        response("resp_2", [], "Task completed."),
+    ])
+    runtime = FakeSandboxRuntime(connection_origins=["https://example.com"])
+    service = ComputerUseService(
+        settings_obj=config,
+        openai_client=openai,
+        sandbox_runtime=runtime,
+    )
+    executions = []
+    service._execute_in_sandbox = lambda **kwargs: (
+        executions.append(kwargs)
+        or [{"type": "input_text", "text": "ok"}]
+    )
+
+    service.run_task("Read the page title.")
+
+    assert runtime.origins == ["https://example.com:443"]
+    assert executions[0]["policy"]["allowed_origins"] == ["https://example.com"]

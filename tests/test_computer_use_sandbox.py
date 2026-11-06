@@ -35,6 +35,7 @@ class FakeBox:
         self.health_status = health_status
         self.processes = []
         self.policies = []
+        self.network_policy = None
 
     def run_process(self, command, args, **kwargs):
         self.processes.append((command, args, kwargs))
@@ -42,6 +43,10 @@ class FakeBox:
 
     def update_network_policy(self, policy):
         self.policies.append(policy)
+        self.network_policy = SimpleNamespace(
+            mode=policy["mode"],
+            allowed_domains=tuple(policy.get("allow", {}).keys()),
+        )
 
 
 class FakeSandboxContext:
@@ -123,11 +128,18 @@ def test_sandbox_runtime_uploads_files_narrows_egress_and_starts_runtime(tmp_pat
 
     assert api.context.closed is True
     assert api.options["persistent"] is False
+    assert api.options["image"] == VercelSandboxRuntime.IMAGE
     assert api.options["ports"] == [8765]
     assert api.options["region"] == "fra1"
     assert any(path.endswith("computer_use_runtime/service.py") for path in box.fs.files)
-    assert any(command == "uv" for command, _, _ in box.processes)
-    assert any(command == "python" and "install" in args for command, args, _ in box.processes)
+    assert any(
+        command == "python" and "install" in args
+        for command, args, _ in box.processes
+    )
+    assert any(
+        command == "python" and "playwright" in args and "chromium" in args
+        for command, args, _ in box.processes
+    )
 
 
 def test_sandbox_runtime_fails_closed_when_network_policy_is_not_attested(tmp_path):
@@ -185,3 +197,36 @@ def test_sandbox_runtime_uses_deny_all_for_local_only_origins(tmp_path):
         pass
 
     assert box.policies[-1] == {"mode": "deny-all"}
+
+
+def test_official_vercel_sandbox_sdk_import_contract():
+    from vercel.api import session
+    from vercel.sandbox import NetworkPolicy
+    from vercel.sandbox import sync as vercel_sandbox
+
+    assert callable(session)
+    assert callable(vercel_sandbox.create_sandbox)
+    assert NetworkPolicy.custom(allow={"example.com": ()}).mode == "custom"
+    assert NetworkPolicy.deny_all().mode == "deny-all"
+
+
+def test_sandbox_rejects_external_non_default_ports_before_creation(tmp_path):
+    box = FakeBox()
+    api = FakeSandboxAPI(box)
+    manager = VercelSandboxRuntime(
+        settings_obj=SimpleNamespace(
+            computer_use_sandbox_region="",
+            computer_use_sandbox_timeout_seconds=600,
+        ),
+        sandbox_api=api,
+        network_policy_factory=FakePolicy,
+        http_client_factory=lambda **kwargs: FakeHTTPClient(FakeResponse()),
+        runtime_root=tmp_path,
+        sleep=lambda _: None,
+    )
+
+    with pytest.raises(ComputerUseSandboxError, match="non-default ports"):
+        with manager.open(["https://example.com:8443"]):
+            pytest.fail("Unsupported external ports must be rejected before sandbox creation")
+
+    assert api.options is None
