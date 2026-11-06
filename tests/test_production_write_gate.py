@@ -120,9 +120,10 @@ def test_owner_app_write_handlers_check_the_server_write_policy():
     ):
         match = re.search(rf"async function {handler}\([^)]*\)\{{([^}}]*)", html)
         assert match, f"Missing browser write handler: {handler}"
-        assert match.group(1).startswith("if(!ensureWriteEnabled())return;"), (
-            f"{handler} must check the server write policy before doing any work"
-        )
+        assert re.match(
+            r"\s*if\(!ensureWriteEnabled\(\)(?:\|\|[A-Za-z_]\w*)?\)return;",
+            match.group(1),
+        ), f"{handler} must check the server write policy before doing any work"
 
 
 @pytest.mark.parametrize(
