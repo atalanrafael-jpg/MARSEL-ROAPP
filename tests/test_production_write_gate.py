@@ -1,4 +1,5 @@
 from pathlib import Path
+import re
 from types import SimpleNamespace
 
 import pytest
@@ -108,4 +109,17 @@ def test_owner_app_write_handlers_check_the_server_write_policy():
     html = Path("web/index.html").read_text(encoding="utf-8")
     assert "production_write_enabled" in html
     assert "function ensureWriteEnabled()" in html
-    assert html.count("if(!ensureWriteEnabled())return;") >= 5
+
+    for handler in (
+        "createClientRow",
+        "createRepairRow",
+        "changeStatus",
+        "writeAudit",
+        "addAttachment",
+        "createPayment",
+    ):
+        match = re.search(rf"async function {handler}\\([^)]*\\)\\{{([^}}]*)", html)
+        assert match, f"Missing browser write handler: {handler}"
+        assert match.group(1).startswith("if(!ensureWriteEnabled())return;"), (
+            f"{handler} must check the server write policy before doing any work"
+        )
