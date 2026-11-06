@@ -1,4 +1,5 @@
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 from fastapi.testclient import TestClient
@@ -45,7 +46,10 @@ from app.main import app, require_supabase_user
 def test_mutation_endpoints_fail_closed_when_production_write_is_disabled(
     monkeypatch, path, payload, write_target
 ):
-    monkeypatch.setattr(settings, "production_write_enabled", False, raising=False)
+    monkeypatch.setattr(
+        "app.main.settings",
+        SimpleNamespace(production_write_enabled=False),
+    )
 
     def unexpected_write(*args, **kwargs):
         raise AssertionError("Mutation service must not run while production WRITE is disabled")
@@ -69,11 +73,18 @@ def test_mutation_endpoints_fail_closed_when_production_write_is_disabled(
 
 
 def test_production_write_is_disabled_by_default():
-    assert settings.production_write_enabled is False
+    assert getattr(settings, "production_write_enabled", None) is False
 
 
 def test_owner_app_config_reports_production_write_disabled(monkeypatch):
-    monkeypatch.setattr(settings, "production_write_enabled", False, raising=False)
+    monkeypatch.setattr(
+        "app.main.settings",
+        SimpleNamespace(
+            production_write_enabled=False,
+            supabase_url="https://example.supabase.co",
+            supabase_publishable_key="test-publishable-key",
+        ),
+    )
     previous = app.dependency_overrides.get(require_supabase_user)
     app.dependency_overrides[require_supabase_user] = lambda: {"id": "user-test"}
     try:
