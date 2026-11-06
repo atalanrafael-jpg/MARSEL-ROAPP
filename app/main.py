@@ -333,8 +333,8 @@ async def _fetch_weather(city: str | None, latitude: float | None, longitude: fl
 def admin_overview(user: dict = Depends(require_admin_user)):
     return {
         "role": user.get("app_role"),
-        "production_write": False,
-        "roapp_mode": "READ_ONLY",
+        "production_write": settings.production_write_enabled,
+        "roapp_mode": "READ_ONLY" if not settings.production_write_enabled else "WRITE_ENABLED",
         "ai": ai_assistant.health(),
         "payments": payment_gateway.health(),
         "auth": "supabase",
@@ -343,7 +343,7 @@ def admin_overview(user: dict = Depends(require_admin_user)):
 
 @app.get("/api/v1/platform/health", dependencies=[Depends(require_supabase_user)])
 def platform_health():
-    return {"ai": ai_assistant.health(), "payments": payment_gateway.health(), "roapp": {"mode": "READ_ONLY", "write_enabled": False}}
+    return {"ai": ai_assistant.health(), "payments": payment_gateway.health(), "roapp": {"mode": "READ_ONLY" if not settings.production_write_enabled else "WRITE_ENABLED", "write_enabled": settings.production_write_enabled}}
 
 
 class ComputerUseRequest(BaseModel):
@@ -383,8 +383,8 @@ def dashboard_overview(user: dict = Depends(require_supabase_user)):
             "services": SERVICE_PACKAGES,
         },
         "status": {
-            "operating_mode": "READ_ONLY",
-            "production_write": False,
+            "operating_mode": "READ_ONLY" if not settings.production_write_enabled else "WRITE_ENABLED",
+            "production_write": settings.production_write_enabled,
             "brand": "Ювелирная студия MARSEL",
             "studio_type": "ювелирная, часовая, очковая",
         },
