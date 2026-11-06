@@ -123,3 +123,62 @@ def test_owner_app_write_handlers_check_the_server_write_policy():
         assert match.group(1).startswith("if(!ensureWriteEnabled())return;"), (
             f"{handler} must check the server write policy before doing any work"
         )
+
+
+@pytest.mark.parametrize(
+    ("path", "expected_path"),
+    [
+        ("/api/v1/admin/overview", ("production_write",)),
+        ("/api/v1/platform/health", ("roapp", "write_enabled")),
+        ("/api/v1/dashboard/overview", ("status", "production_write")),
+    ],
+)
+def test_status_endpoints_report_the_configured_write_gate(monkeypatch, path, expected_path):
+    from app.main import require_admin_user
+
+    monkeypatch.setattr(
+        "app.main.settings",
+        SimpleNamespace(production_write_enabled=True),
+    )
+    previous_user = app.dependency_overrides.get(require_supabase_user)
+    previous_admin = app.dependency_overrides.get(require_admin_user)
+    app.dependency_overrides[require_supabase_user] = lambda: {
+        "id": "user-test",
+        "app_role": "owner",
+    }
+    app.dependency_overrides[require_admin_user] = lambda: {
+        "id": "user-test",
+        "app_role": "owner",
+    }
+    try:
+        response = TestClient(app).get(path)
+    finally:
+        if previous_user is None:
+            app.dependency_overrides.pop(require_supabase_user, None)
+        else:
+            app.dependency_overrides[require_supabase_user] = previous_user
+        if previous_admin is None:
+            app.dependency_overrides.pop(require_admin_user, None)
+        else:
+            app.dependency_overrides[require_admin_user] = previous_admin
+
+    assert response.status_code == 200
+    value = response.json()
+    for key in expected_path:
+        value = value[key]
+    assert value is True
+
+
+def test_client_and_repair_forms_prevent_concurrent_duplicate_submissions():
+    html = Path("web/index.html").read_text(encoding="utf-8")
+    assert "clientCreateInFlight" in html
+    assert "repairCreateInFlight" in html
+    for handler, lock in (
+        ("createClientRow", "clientCreateInFlight"),
+        ("createRepairRow", "repairCreateInFlight"),
+    ):
+        match = re.search(rf"async function {handler}\([^)]*\)\{{([\s\S]*?)\n\}}", html)
+        assert match, f"Missing browser handler: {handler}"
+        body = match.group(1)
+        assert f"{lock}" in body
+        assert "finally" in body
