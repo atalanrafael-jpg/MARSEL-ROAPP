@@ -49,6 +49,11 @@ for pattern in FORBIDDEN_SECRET_PATTERNS:
                 if re.search(pattern, text):
                     fail(f"possible embedded secret in {file.relative_to(ROOT)}")
 
+BROWSER_MUTATION_PATTERNS = [
+    r"\\.from\\([^)]*\\)\\.(?:insert|update|delete|upsert)\\(",
+    r"\\.storage\\.from\\([^)]*\\)\\.(?:upload|remove)\\(",
+]
+
 checks = {
     "health_route": '@app.get("/health")' in main,
     "ready_route": '@app.get("/ready")' in main,
@@ -57,11 +62,10 @@ checks = {
     "owner_role_gate": 'role not in {"owner", "admin", "employee"}' in main,
     "read_only_roapp": "Production WRITE is disabled." in readme,
     "owner_ui": "Вход владельца" in ui,
-    "client_flow": 'from("clients").insert' in ui,
-    "repair_flow": 'from("repairs").insert' in ui,
-    "status_history": 'from("repair_status_history").insert' in ui,
-    "audit_log": 'from("audit_log").insert' in ui,
-    "attachment_reference": 'from("attachments").insert' in ui,
+    "server_write_gate": "def require_production_write()" in main and "if not settings.production_write_enabled" in main,
+    "browser_write_gate": "function ensureWriteEnabled()" in ui,
+    "server_storage_fail_closed": "const SERVER_PERSISTENCE_READY=false;" in ui,
+    "browser_has_no_direct_supabase_mutations": not any(re.search(pattern, ui) for pattern in BROWSER_MUTATION_PATTERNS),
 }
 
 failed = [name for name, ok in checks.items() if not ok]
@@ -71,5 +75,5 @@ if failed:
 print("OWNER_MVP_PREFLIGHT=PASS")
 for name in checks:
     print(f"{name}=PASS")
-print("ROAPP_WRITE=DISABLED_BY_PROJECT_POLICY")
+print("ROAPP_WRITE=DISABLED_BY_PROJECT_POLICY")\nprint("BROWSER_SUPABASE_MUTATIONS=ABSENT")\nprint("SERVER_PERSISTENCE=NOT_READY")
 print("EXTERNAL_LIVE_DEPLOYMENT=NOT_VERIFIED")
