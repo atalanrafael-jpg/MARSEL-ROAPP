@@ -162,6 +162,12 @@ def require_admin_user(user: dict = Depends(require_supabase_user)) -> dict:
     return user
 
 
+def require_production_write() -> None:
+    """Block application mutations unless production writes are explicitly enabled."""
+    if not settings.production_write_enabled:
+        raise HTTPException(status_code=403, detail="Production WRITE is disabled by policy")
+
+
 JEWELRY_COLLECTIONS = [
     {
         "id": "royal-sapphire",
@@ -327,8 +333,8 @@ async def _fetch_weather(city: str | None, latitude: float | None, longitude: fl
 def admin_overview(user: dict = Depends(require_admin_user)):
     return {
         "role": user.get("app_role"),
-        "production_write": False,
-        "roapp_mode": "READ_ONLY",
+        "production_write": settings.production_write_enabled,
+        "roapp_mode": "READ_ONLY" if not settings.production_write_enabled else "WRITE_ENABLED",
         "ai": ai_assistant.health(),
         "payments": payment_gateway.health(),
         "auth": "supabase",
@@ -337,7 +343,7 @@ def admin_overview(user: dict = Depends(require_admin_user)):
 
 @app.get("/api/v1/platform/health", dependencies=[Depends(require_supabase_user)])
 def platform_health():
-    return {"ai": ai_assistant.health(), "payments": payment_gateway.health(), "roapp": {"mode": "READ_ONLY", "write_enabled": False}}
+    return {"ai": ai_assistant.health(), "payments": payment_gateway.health(), "roapp": {"mode": "READ_ONLY" if not settings.production_write_enabled else "WRITE_ENABLED", "write_enabled": settings.production_write_enabled}}
 
 
 class ComputerUseRequest(BaseModel):
@@ -377,8 +383,8 @@ def dashboard_overview(user: dict = Depends(require_supabase_user)):
             "services": SERVICE_PACKAGES,
         },
         "status": {
-            "operating_mode": "READ_ONLY",
-            "production_write": False,
+            "operating_mode": "READ_ONLY" if not settings.production_write_enabled else "WRITE_ENABLED",
+            "production_write": settings.production_write_enabled,
             "brand": "Ювелирная студия MARSEL",
             "studio_type": "ювелирная, часовая, очковая",
         },
@@ -415,7 +421,7 @@ def ai_advise(payload: dict):
     return {"text": result.text, "model": result.model, "enabled": result.enabled}
 
 
-@app.post("/api/v1/payments/create", dependencies=[Depends(require_supabase_user)])
+@app.post("/api/v1/payments/create", dependencies=[Depends(require_supabase_user), Depends(require_production_write)])
 async def create_payment(payload: dict, idempotency_key: str | None = Header(default=None, alias="Idempotency-Key")):
     try:
         amount_minor = int(payload.get("amount_minor") or 0)
@@ -489,7 +495,7 @@ def get_repair(repair_id: str):
     return repair_service.get_repair(repair_id).to_dict()
 
 
-@app.post("/repairs", dependencies=[Depends(require_supabase_user)])
+@app.post("/repairs", dependencies=[Depends(require_supabase_user), Depends(require_production_write)])
 def create_repair(payload: dict):
     client = Client(
         id=payload.get("client_id") or "client-1",
@@ -520,7 +526,7 @@ def create_repair(payload: dict):
     return repair.to_dict()
 
 
-@app.post("/repairs/{repair_id}/status", dependencies=[Depends(require_supabase_user)])
+@app.post("/repairs/{repair_id}/status", dependencies=[Depends(require_supabase_user), Depends(require_production_write)])
 def update_repair_status(repair_id: str, payload: dict):
     repair = repair_service.update_status(
         repair_id,
@@ -541,7 +547,7 @@ def repair_estimate(repair_id: str, payload: dict):
     return estimate.to_dict()
 
 
-@app.post("/repairs/{repair_id}/quality", dependencies=[Depends(require_supabase_user)])
+@app.post("/repairs/{repair_id}/quality", dependencies=[Depends(require_supabase_user), Depends(require_production_write)])
 def add_quality_check(repair_id: str, payload: dict):
     check = quality_service.add_check(
         repair_id,
@@ -557,7 +563,7 @@ def list_quality_checks(repair_id: str):
     return [check.to_dict() for check in quality_service.list_checks(repair_id)]
 
 
-@app.post("/repairs/{repair_id}/notify", dependencies=[Depends(require_supabase_user)])
+@app.post("/repairs/{repair_id}/notify", dependencies=[Depends(require_supabase_user), Depends(require_production_write)])
 def send_notification(repair_id: str, payload: dict):
     note = notification_service.send(
         repair_id=repair_id,
@@ -578,7 +584,7 @@ def list_materials():
     return [m.to_dict() for m in material_catalog.list_materials()]
 
 
-@app.post("/materials", dependencies=[Depends(require_supabase_user)])
+@app.post("/materials", dependencies=[Depends(require_supabase_user), Depends(require_production_write)])
 def create_material(payload: dict):
     material = material_catalog.create_material(
         name=payload.get("name") or "Material",
@@ -599,7 +605,7 @@ def list_customers():
     ]
 
 
-@app.post("/customers", dependencies=[Depends(require_supabase_user)])
+@app.post("/customers", dependencies=[Depends(require_supabase_user), Depends(require_production_write)])
 def create_customer(payload: dict):
     customer = customer_service.register_customer(
         client_id=payload.get("client_id") or "client-1",
@@ -624,7 +630,11 @@ def owner_app():
 
 @app.get("/app/config", response_class=JSONResponse)
 def owner_app_config():
-    return {"supabase_url": settings.supabase_url, "supabase_publishable_key": settings.supabase_publishable_key}
+    return {
+        "supabase_url": settings.supabase_url,
+        "supabase_publishable_key": settings.supabase_publishable_key,
+        "production_write_enabled": settings.production_write_enabled,
+    }
 
 
 @app.get("/app/manifest.json", response_class=JSONResponse)

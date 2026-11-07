@@ -26,6 +26,9 @@ class Settings(BaseSettings):
     automation_require_evidence: bool = True
     automation_require_approval: bool = True
 
+    # Global fail-closed gate for application mutations. Keep disabled until explicit approval.
+    production_write_enabled: bool = False
+
     # OpenAI Ads Conversions API credentials must come from Ads Manager > Conversions.
     # Never use the general OpenAI Platform API key for this integration.
     openai_ads_pixel_id: str = ""
