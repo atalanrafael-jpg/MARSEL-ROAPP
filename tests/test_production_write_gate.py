@@ -183,3 +183,18 @@ def test_client_and_repair_forms_prevent_concurrent_duplicate_submissions():
         body = match.group(1)
         assert f"{lock}" in body
         assert "finally" in body
+
+def test_browser_does_not_issue_direct_supabase_mutations():
+    html = Path("web/index.html").read_text(encoding="utf-8")
+    mutation_patterns = (
+        r"\\.from\\([^)]*\\)\\.insert\\(",
+        r"\\.from\\([^)]*\\)\\.update\\(",
+        r"\\.from\\([^)]*\\)\\.delete\\(",
+        r"\\.from\\([^)]*\\)\\.upsert\\(",
+        r"\\.storage\\.from\\([^)]*\\)\\.(?:upload|remove)\\(",
+    )
+    for pattern in mutation_patterns:
+        assert not re.search(pattern, html), (
+            "Browser must not mutate Supabase directly; route writes through "
+            "a verified server-side persistence layer."
+        )
