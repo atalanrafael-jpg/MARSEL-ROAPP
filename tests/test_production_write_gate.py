@@ -170,19 +170,15 @@ def test_status_endpoints_report_the_configured_write_gate(monkeypatch, path, ex
     assert value is True
 
 
-def test_client_and_repair_forms_prevent_concurrent_duplicate_submissions():
+def test_browser_mutation_controls_fail_closed_until_server_storage_is_ready():
     html = Path("web/index.html").read_text(encoding="utf-8")
-    assert "clientCreateInFlight" in html
-    assert "repairCreateInFlight" in html
-    for handler, lock in (
-        ("createClientRow", "clientCreateInFlight"),
-        ("createRepairRow", "repairCreateInFlight"),
-    ):
-        match = re.search(rf"async function {handler}\([^)]*\)\{{([\s\S]*?)\n\}}", html)
-        assert match, f"Missing browser handler: {handler}"
-        body = match.group(1)
-        assert f"{lock}" in body
-        assert "finally" in body
+    assert "const SERVER_PERSISTENCE_READY=false;" in html
+    assert "productionWriteEnabled&&SERVER_PERSISTENCE_READY" in html
+    for handler in ("createClientRow", "createRepairRow", "changeStatus", "writeAudit", "addAttachment", "createPayment"):
+        match = re.search(rf"async function {handler}\\([^)]*\\)\\{{([\\s\\S]*?)\\n\\}}", html)
+        assert match, f"Missing browser mutation handler: {handler}"
+        assert "if(!ensureWriteEnabled())return;" in match.group(1)
+
 
 def test_browser_does_not_issue_direct_supabase_mutations():
     html = Path("web/index.html").read_text(encoding="utf-8")
