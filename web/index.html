@@ -359,12 +359,13 @@
 
 <script type="module">
 import {createClient} from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
-let sb,user,clients=[],repairs=[],productionWriteEnabled=false,clientCreateInFlight=false,repairCreateInFlight=false;
+let sb,user,clients=[],repairs=[],productionWriteEnabled=false;
+const SERVER_PERSISTENCE_READY=false; // Enable only after verified transactional server-side storage is implemented.
 const $=id=>document.getElementById(id);
 const esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
 const notice=(t,k="")=>{$("notice").textContent=t;$("notice").className="notice "+k};
-function ensureWriteEnabled(){if(productionWriteEnabled)return true;notice("Режим READ-ONLY: запись отключена.","err");return false}
-function applyWritePolicy(){["createClient","createRepair","addAttachment","createPayment"].forEach(id=>{const control=$(id);if(control)control.disabled=!productionWriteEnabled});const status=$("writeStatus");if(status)status.textContent=productionWriteEnabled?"Production WRITE: ON":"Production WRITE: OFF"}
+function ensureWriteEnabled(){if(productionWriteEnabled&&SERVER_PERSISTENCE_READY)return true;notice(SERVER_PERSISTENCE_READY?"Режим READ-ONLY: запись отключена.":"Запись заблокирована: серверное хранилище не готово.","err");return false}
+function applyWritePolicy(){const canWrite=productionWriteEnabled&&SERVER_PERSISTENCE_READY;["createClient","createRepair","addAttachment","createPayment"].forEach(id=>{const control=$(id);if(control)control.disabled=!canWrite});const status=$("writeStatus");if(status)status.textContent=canWrite?"Production WRITE: ON":"Production WRITE: OFF · серверное хранилище не готово"}
 async function init(){
   const c=await fetch("/app/config").then(r=>r.json());
   productionWriteEnabled=c.production_write_enabled===true;
@@ -386,37 +387,27 @@ async function loadAll(){const [c,r,h]=await Promise.all([sb.from("clients").sel
 function renderPriority(){const a=repairs.filter(x=>x.due_at).sort((x,y)=>new Date(x.due_at)-new Date(y.due_at)).slice(0,5);$("priority").innerHTML=a.length?a.map(x=>{const i=(x.repair_items||[])[0];return "<div class='row' style='padding:10px 0;border-bottom:1px solid var(--line)'><div><b>"+esc(x.clients?.full_name||"—")+"</b><div class='muted'>"+esc(i?.description||"—")+"</div></div><span class='pill'>"+new Date(x.due_at).toLocaleDateString("ru-RU")+"</span></div>"}).join(""):"<p class='muted'>Нет активных приоритетов.</p>"}
 function renderClients(){const q=($("clientSearch").value||"").toLowerCase();$("clients").innerHTML=clients.filter(x=>[x.full_name,x.phone,x.email].join(" ").toLowerCase().includes(q)).slice(0,30).map(x=>"<div class='row' style='padding:12px 0;border-bottom:1px solid var(--line)'><div><b>"+esc(x.full_name)+"</b><div class='muted'>"+esc(x.phone||"")+" · "+esc(x.email||"")+"</div></div><span class='pill'>client</span></div>").join("")||"<p class='muted'>Нет клиентов.</p>"}
 function renderSelects(){$("repairClient").innerHTML="<option value=''>Выберите клиента</option>"+clients.map(x=>"<option value='"+x.id+"'>"+esc(x.full_name)+"</option>").join("");$("attachmentRepair").innerHTML="<option value=''>Выберите ремонт</option>"+repairs.map(x=>"<option value='"+x.id+"'>"+esc(x.clients?.full_name||"—")+" · "+esc((x.repair_items||[])[0]?.description||"—")+"</option>").join("")}
-function renderRepairs(){const q=($("repairSearch").value||"").toLowerCase(),status=["accepted","diagnostics","approval","in_progress","quality_control","ready","issued","cancelled"];$("repairs").innerHTML=repairs.filter(r=>JSON.stringify(r).toLowerCase().includes(q)).map(r=>{const i=(r.repair_items||[])[0];return "<tr><td><b>"+esc(r.clients?.full_name||"—")+"</b></td><td>"+esc(i?.description||"—")+"<br><span class='muted'>"+esc(i?.item_type||"")+"</span></td><td><select data-id='"+r.id+"' class='status' "+(productionWriteEnabled?"":"disabled")+">"+status.map(s=>"<option "+(s===r.status?"selected":"")+" value='"+s+"'>"+s+"</option>").join("")+"</select></td><td>"+(r.due_at?new Date(r.due_at).toLocaleDateString("ru-RU"):"—")+"</td><td><button class='btn secondary small auditBtn' data-id='"+r.id+"' "+(productionWriteEnabled?"":"disabled")+">Аудит</button></td></tr>"}).join("")||"<tr><td colspan='5' class='muted'>Нет ремонтов.</td></tr>";document.querySelectorAll(".status").forEach(x=>x.onchange=()=>changeStatus(x.dataset.id,x.value));document.querySelectorAll(".auditBtn").forEach(x=>x.onclick=()=>writeAudit(x.dataset.id))}
+function renderRepairs(){const q=($("repairSearch").value||"").toLowerCase(),status=["accepted","diagnostics","approval","in_progress","quality_control","ready","issued","cancelled"];$("repairs").innerHTML=repairs.filter(r=>JSON.stringify(r).toLowerCase().includes(q)).map(r=>{const i=(r.repair_items||[])[0];return "<tr><td><b>"+esc(r.clients?.full_name||"—")+"</b></td><td>"+esc(i?.description||"—")+"<br><span class='muted'>"+esc(i?.item_type||"")+"</span></td><td><select data-id='"+r.id+"' class='status' "+(productionWriteEnabled&&SERVER_PERSISTENCE_READY?"":"disabled")+">"+status.map(s=>"<option "+(s===r.status?"selected":"")+" value='"+s+"'>"+s+"</option>").join("")+"</select></td><td>"+(r.due_at?new Date(r.due_at).toLocaleDateString("ru-RU"):"—")+"</td><td><button class='btn secondary small auditBtn' data-id='"+r.id+"' "+(productionWriteEnabled&&SERVER_PERSISTENCE_READY?"":"disabled")+">Аудит</button></td></tr>"}).join("")||"<tr><td colspan='5' class='muted'>Нет ремонтов.</td></tr>";document.querySelectorAll(".status").forEach(x=>x.onchange=()=>changeStatus(x.dataset.id,x.value));document.querySelectorAll(".auditBtn").forEach(x=>x.onclick=()=>writeAudit(x.dataset.id))}
 async function createClientRow(){
- if(!ensureWriteEnabled()||clientCreateInFlight)return;
- clientCreateInFlight=true;$("createClient").disabled=true;
- try{
-  const name=$("clientName").value.trim();if(!name)return;
-  const r=await sb.from("clients").insert({full_name:name,phone:$("clientPhone").value.trim()||null,email:$("clientEmail").value.trim()||null,notes:$("clientNotes").value.trim()||null}).select().single();
-  if(r.error)return alert(r.error.message);
-  await writeAudit(r.data.id,"client","create",null,r.data);
-  ["clientName","clientPhone","clientEmail","clientNotes"].forEach(id=>$(id).value="");
-  await loadAll();
- }finally{clientCreateInFlight=false;applyWritePolicy()}
+ if(!ensureWriteEnabled())return;
+ notice("Создание клиента недоступно: серверное сохранение ещё не реализовано.","err");
 }
 async function createRepairRow(){
- if(!ensureWriteEnabled()||repairCreateInFlight)return;
- repairCreateInFlight=true;$("createRepair").disabled=true;
- try{
-  const client_id=$("repairClient").value;if(!client_id)return alert("Выберите клиента");
-  const rr=await sb.from("repairs").insert({client_id,status:"accepted",due_at:$("dueAt").value?new Date($("dueAt").value).toISOString():null,notes:$("repairNotes").value.trim()||null,created_by:user.id}).select().single();
-  if(rr.error)return alert(rr.error.message);
-  const ir=await sb.from("repair_items").insert({repair_id:rr.data.id,item_type:$("itemType").value,description:$("itemDescription").value.trim(),metal:$("metal").value.trim()||null,stone_details:$("stones").value.trim()||null,serial_number:$("serial").value.trim()||null,condition_notes:$("condition").value.trim()||null}).select().single();
-  if(ir.error){const rollback=await sb.from("repairs").delete().eq("id",rr.data.id);if(rollback.error)alert("Не удалось создать позицию и откатить ремонт. Требуется ручная проверка: "+rollback.error.message);return alert(ir.error.message)}
-  const history=await sb.from("repair_status_history").insert({repair_id:rr.data.id,to_status:"accepted",changed_by:user.id,comment:"Создано через MARSEL ROAPP"});
-  if(history.error){const rollback=await sb.from("repairs").delete().eq("id",rr.data.id);if(rollback.error)alert("Не удалось записать историю и откатить ремонт. Требуется ручная проверка: "+rollback.error.message);return alert("Не удалось записать историю ремонта: "+history.error.message)}
-  await writeAudit(rr.data.id,"repair","create",null,{...rr.data,item:ir.data});
-  await loadAll();go("repairs");
- }finally{repairCreateInFlight=false;applyWritePolicy()}
+ if(!ensureWriteEnabled())return;
+ notice("Создание ремонта недоступно: серверное сохранение ещё не реализовано.","err");
 }
-async function changeStatus(id,status){if(!ensureWriteEnabled())return;const old=repairs.find(x=>x.id===id);const r=await sb.from("repairs").update({status,updated_at:new Date().toISOString(),completed_at:["issued","cancelled"].includes(status)?new Date().toISOString():null}).eq("id",id);if(r.error)return alert(r.error.message);await sb.from("repair_status_history").insert({repair_id:id,from_status:old?.status||null,to_status:status,changed_by:user.id});await writeAudit(id,"repair","status_change",{status:old?.status},{status});await loadAll()}
-async function writeAudit(entity_id,entity_type="repair",action="view",before_data=null,after_data=null){if(!ensureWriteEnabled())return;await sb.from("audit_log").insert({actor_id:user.id,action,entity_type,entity_id,before_data,after_data})}
-async function addAttachment(){if(!ensureWriteEnabled())return;const repair_id=$("attachmentRepair").value,path=$("storagePath").value.trim();if(!repair_id||!path)return alert("Ремонт и storage path обязательны");const r=await sb.from("attachments").insert({entity_type:"repair",entity_id:repair_id,storage_path:path,file_name:$("fileName").value.trim()||null,mime_type:$("mimeType").value.trim()||null,created_by:user.id});if(r.error)return alert(r.error.message);await writeAudit(repair_id,"attachment","reference_create",null,{storage_path:path});alert("Ссылка сохранена")}
+async function changeStatus(id,status){
+ if(!ensureWriteEnabled())return;
+ notice("Изменение статуса недоступно: серверная транзакция ещё не реализована.","err");
+}
+async function writeAudit(entity_id,entity_type="repair",action="view",before_data=null,after_data=null){
+ if(!ensureWriteEnabled())return;
+ notice("Запись аудита недоступна: серверный журнал ещё не подключён.","err");
+}
+async function addAttachment(){
+ if(!ensureWriteEnabled())return;
+ notice("Вложения недоступны: серверная загрузка и проверка хранилища ещё не реализованы.","err");
+}
 async function askAI(){const prompt=$("aiPrompt").value.trim();if(!prompt)return;const s=await sb.auth.getSession();const r=await fetch("/api/v1/ai/advise",{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+s.data.session.access_token},body:JSON.stringify({prompt})});const data=await r.json();$("aiOut").style.display="block";$("aiOut").textContent=data.text||data.detail||"AI не вернул ответ."}
 async function runComputerUse(){
  const task=$("computerUseTask").value.trim();if(!task)return;
