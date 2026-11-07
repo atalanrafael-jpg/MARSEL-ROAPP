@@ -187,11 +187,11 @@ def test_client_and_repair_forms_prevent_concurrent_duplicate_submissions():
 def test_browser_does_not_issue_direct_supabase_mutations():
     html = Path("web/index.html").read_text(encoding="utf-8")
     mutation_patterns = (
-        r"\\.from\\([^)]*\\)\\.insert\\(",
-        r"\\.from\\([^)]*\\)\\.update\\(",
-        r"\\.from\\([^)]*\\)\\.delete\\(",
-        r"\\.from\\([^)]*\\)\\.upsert\\(",
-        r"\\.storage\\.from\\([^)]*\\)\\.(?:upload|remove)\\(",
+        r"\.from\([^)]*\)\.insert\(",
+        r"\.from\([^)]*\)\.update\(",
+        r"\.from\([^)]*\)\.delete\(",
+        r"\.from\([^)]*\)\.upsert\(",
+        r"\.storage\.from\([^)]*\)\.(?:upload|remove)\(",
     )
     for pattern in mutation_patterns:
         assert not re.search(pattern, html), (
