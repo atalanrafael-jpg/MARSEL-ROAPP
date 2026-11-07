@@ -175,9 +175,10 @@ def test_browser_mutation_controls_fail_closed_until_server_storage_is_ready():
     assert "const SERVER_PERSISTENCE_READY=false;" in html
     assert "productionWriteEnabled&&SERVER_PERSISTENCE_READY" in html
     for handler in ("createClientRow", "createRepairRow", "changeStatus", "writeAudit", "addAttachment", "createPayment"):
-        match = re.search(rf"async function {handler}\\([^)]*\\)\\{{([\\s\\S]*?)\\n\\}}", html)
-        assert match, f"Missing browser mutation handler: {handler}"
-        assert "if(!ensureWriteEnabled())return;" in match.group(1)
+        start = html.index(f"async function {handler}(")
+        body_start = html.index("{", start) + 1
+        body_end = html.index("\\n}", body_start)
+        assert "if(!ensureWriteEnabled())return;" in html[body_start:body_end]
 
 
 def test_browser_does_not_issue_direct_supabase_mutations():
