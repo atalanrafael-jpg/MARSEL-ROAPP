@@ -177,7 +177,7 @@ def test_browser_mutation_controls_fail_closed_until_server_storage_is_ready():
     for handler in ("createClientRow", "createRepairRow", "changeStatus", "writeAudit", "addAttachment", "createPayment"):
         start = html.index(f"async function {handler}(")
         body_start = html.index("{", start) + 1
-        body_end = html.index("\\n}", body_start)
+        body_end = html.index("}", body_start)
         assert "if(!ensureWriteEnabled())return;" in html[body_start:body_end]
 
 
