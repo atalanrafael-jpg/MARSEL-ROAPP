@@ -50,8 +50,8 @@ for pattern in FORBIDDEN_SECRET_PATTERNS:
                     fail(f"possible embedded secret in {file.relative_to(ROOT)}")
 
 BROWSER_MUTATION_PATTERNS = [
-    r"\\.from\\([^)]*\\)\\.(?:insert|update|delete|upsert)\\(",
-    r"\\.storage\\.from\\([^)]*\\)\\.(?:upload|remove)\\(",
+    r"\.from\([^)]*\)\.(?:insert|update|delete|upsert)\(",
+    r"\.storage\.from\([^)]*\)\.(?:upload|remove)\(",
 ]
 
 checks = {
@@ -75,5 +75,7 @@ if failed:
 print("OWNER_MVP_PREFLIGHT=PASS")
 for name in checks:
     print(f"{name}=PASS")
-print("ROAPP_WRITE=DISABLED_BY_PROJECT_POLICY")\nprint("BROWSER_SUPABASE_MUTATIONS=ABSENT")\nprint("SERVER_PERSISTENCE=NOT_READY")
+print("ROAPP_WRITE=DISABLED_BY_PROJECT_POLICY")
+print("BROWSER_SUPABASE_MUTATIONS=ABSENT")
+print("SERVER_PERSISTENCE=NOT_READY")
 print("EXTERNAL_LIVE_DEPLOYMENT=NOT_VERIFIED")
